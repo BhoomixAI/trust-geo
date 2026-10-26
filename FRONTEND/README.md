@@ -1,3 +1,16 @@
+# TRUST-GEO frontend
+
+## Running with the backend
+
+1. Start the Python backend (from `Desktop/trust-geo`): `python -m backend.server` (listens on 127.0.0.1:8000)
+2. Start this app: `npm install` then `npm run dev`, and open http://localhost:5173
+
+Vite proxies `/api` to the backend (see `vite.config.js`). All backend calls go through
+`src/api.js`; set `VITE_API_BASE` to point at a different backend URL. If the backend is not
+running, cards show "Cannot reach the backend" instead of data.
+
+---
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

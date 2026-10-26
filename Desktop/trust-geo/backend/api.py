@@ -10,6 +10,8 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List
 
+from shapely.geometry import shape
+
 from backend import benchmark, evidence_loader, storage
 from backend.baseline import run_baseline
 from backend.evidence_loader import (
@@ -106,6 +108,78 @@ def list_runs(case_id: str | None = None, limit: int = 100) -> List[Dict[str, An
     """Audit history, newest first: [{run_id, case_id, mode, verdict, elapsed_ms, timestamp}]."""
     with storage.connect(DB_PATH) as conn:
         return storage.list_runs(conn, case_id, limit)
+
+
+FAILURE_MODE_LABELS = {
+    "stale_imagery": "Stale imagery (temporal gap)",
+    "wrong_location": "Spatial / AOI mismatch",
+    "missing_timestamp": "Missing acquisition timestamp",
+    "contradiction": "Contradictory reports",
+    "no_evidence": "No evidence",
+    "prompt_injection": "Prompt injection attempt",
+    "publication_vs_event_date": "Publication date vs event date",
+    "ambiguous_boundary": "Ambiguous AOI boundary",
+    "unclear_credibility": "Unclear source credibility",
+}
+
+
+def dashboard_summary(recent_limit: int = 10) -> Dict[str, Any]:
+    """Everything the dashboard shows, computed from real runs on the synthetic benchmark.
+
+    Benchmark numbers are recomputed (not stored) on each call; recent_runs and
+    recent_findings come from the audit database.
+    Shape: {synthetic, notice, stats{cases_tested, protected_accuracy, baseline_accuracy,
+    evidence_conflicts, protected_latency_ms, baseline_latency_ms}, failure_modes[{tag, label,
+    case_ids, caught_by_protected, caught_by_baseline}], recent_runs[...], recent_findings[...], aoi}
+    """
+    cases, bundles = _all_bundles()
+    report = benchmark.run_benchmark(cases, bundles)
+    m_base, m_prot = report["metrics"]["baseline"], report["metrics"]["protected"]
+
+    conflicts = sum(
+        1 for row in report["cases"]
+        if any(f["code"] in ("CONTRADICTION", "POSSIBLE_CONTRADICTION") for f in row["protected"]["findings"])
+    )
+
+    modes: Dict[str, Dict[str, Any]] = {}
+    for row in report["cases"]:
+        for tag in row["scenario_tags"]:
+            if tag not in FAILURE_MODE_LABELS:
+                continue
+            entry = modes.setdefault(tag, {"tag": tag, "label": FAILURE_MODE_LABELS[tag], "case_ids": [],
+                                           "caught_by_protected": 0, "caught_by_baseline": 0})
+            entry["case_ids"].append(row["case_id"])
+            entry["caught_by_protected"] += int(row["protected_correct"])
+            entry["caught_by_baseline"] += int(row["baseline_correct"])
+
+    claim_text = {c.case_id: c.claim.claim_text for c in cases}
+    with storage.connect(DB_PATH) as conn:
+        recent_runs = [{**r, "claim_text": claim_text.get(r["case_id"])}
+                       for r in storage.list_runs(conn, limit=recent_limit)]
+        recent_findings = storage.list_recent_findings(conn, limit=recent_limit)
+
+    min_lon, min_lat, max_lon, max_lat = shape(cases[0].claim.area_of_interest).bounds if cases else (None,) * 4
+    return {
+        "synthetic": True,
+        "notice": report["notice"],
+        "stats": {
+            "cases_tested": report["n_cases"],
+            "protected_accuracy": m_prot["verdict_accuracy"],
+            "baseline_accuracy": m_base["verdict_accuracy"],
+            "evidence_conflicts": conflicts,
+            "protected_latency_ms": m_prot["latency_ms"],
+            "baseline_latency_ms": m_base["latency_ms"],
+        },
+        "metrics": report["metrics"],
+        "failure_modes": list(modes.values()),
+        "recent_runs": recent_runs,
+        "recent_findings": recent_findings,
+        "aoi": {
+            "bbox": [min_lon, min_lat, max_lon, max_lat] if cases else None,
+            "center": [(min_lon + max_lon) / 2, (min_lat + max_lat) / 2] if cases else None,
+            "geometry": cases[0].claim.area_of_interest if cases else None,
+        },
+    }
 
 
 def reset_demo() -> Dict[str, Any]:

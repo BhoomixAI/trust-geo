@@ -41,6 +41,39 @@ python -m backend.demo --offline    # same, using the cached satellite lookup
 
 The audit database defaults to `data/trust_geo.db` (git-ignored). Override with the `TRUST_GEO_DB` environment variable.
 
+## Run the full app (backend + React frontend)
+
+Two terminals:
+
+```bash
+# 1. Backend API on http://127.0.0.1:8000  (from Desktop/trust-geo)
+python -m backend.server
+
+# 2. Frontend on http://localhost:5173  (from FRONTEND/)
+npm install
+npm run dev
+```
+
+Vite proxies `/api` to the backend, so open http://localhost:5173. The server is standard-library
+`http.server`, binds to 127.0.0.1 only, and allows browser calls from `TRUST_GEO_CORS_ORIGINS`
+(default: the Vite dev origins).
+
+| Route | Calls |
+|---|---|
+| `GET /api/health` | — |
+| `GET /api/dashboard` | `dashboard_summary()` |
+| `GET /api/cases` | `list_cases()` |
+| `GET /api/cases/{id}` | `get_case(id)` |
+| `POST /api/cases/{id}/run` body `{"mode": "baseline"\|"protected"}` | `run_case(id, mode)` |
+| `POST /api/benchmark` | `run_benchmark()` |
+| `GET /api/ablation` | `run_ablation()` |
+| `GET /api/acquisitions?bbox=a,b,c,d&date=YYYY-MM-DD` | `nearest_acquisitions(bbox, date)` |
+| `GET /api/runs?case_id=&limit=` | `list_runs(case_id, limit)` |
+| `GET /api/runs/{run_id}/export` | `export_run(run_id)` |
+| `POST /api/reset` | `reset_demo()` |
+
+Errors return JSON `{"error": "..."}` with status 400, 404, 405 or 500.
+
 ## Frontend interface
 
 The frontend calls only `backend/api.py`. Every function returns JSON-serialisable data.
@@ -55,6 +88,7 @@ The frontend calls only `backend/api.py`. Every function returns JSON-serialisab
 | `nearest_acquisitions(bbox, date)` | nearest real Sentinel-2 passes before/after `date`; `source` is `live`, `cached` or `unavailable` |
 | `export_run(run_id)` | full audit record (result, claim, evidence snapshot, version) as a JSON string |
 | `list_runs(case_id=None, limit=100)` | audit history, newest first |
+| `dashboard_summary()` | dashboard stats, failure modes, recent runs and findings, AOI |
 | `reset_demo()` | delete all stored runs and benchmarks |
 
 ## Project structure
@@ -69,6 +103,7 @@ backend/
   benchmark.py        metrics and ablation
   storage.py          SQLite audit store (parameterised SQL only)
   api.py              the only interface the frontend uses
+  server.py           HTTP JSON server wrapping api.py (standard library only)
   demo.py             end-to-end demo script
 data/
   test_cases.json         12 labelled synthetic cases (labels frozen)

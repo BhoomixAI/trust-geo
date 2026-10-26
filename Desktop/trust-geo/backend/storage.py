@@ -136,6 +136,24 @@ def list_runs(conn: sqlite3.Connection, case_id: Optional[str] = None, limit: in
     return [dict(r) for r in conn.execute(sql, params + (int(limit),)).fetchall()]
 
 
+def list_recent_findings(conn: sqlite3.Connection, limit: int = 20, include_pass: bool = False) -> List[Dict[str, Any]]:
+    """Most recent findings across runs, newest first, for an audit stream."""
+    sql = (
+        "SELECT f.check_name, f.code, f.status, f.severity, f.evidence_ids_json, f.explanation, "
+        "r.run_id, r.case_id, r.mode, r.timestamp FROM findings f JOIN runs r ON r.run_id = f.run_id"
+    )
+    if not include_pass:
+        sql += " WHERE f.status != 'PASS'"
+    sql += " ORDER BY r.timestamp DESC, f.id DESC LIMIT ?"
+    rows = conn.execute(sql, (int(limit),)).fetchall()
+    out = []
+    for r in rows:
+        d = dict(r)
+        d["evidence_ids"] = json.loads(d.pop("evidence_ids_json"))
+        out.append(d)
+    return out
+
+
 def save_benchmark(conn: sqlite3.Connection, benchmark_id: str, report: Dict[str, Any]) -> None:
     """Store a benchmark report."""
     conn.execute(

@@ -1,14 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  FileText, 
-  Image as ImageIcon, 
-  Download, 
-  CheckCircle2, 
-  ExternalLink,
-  Calendar,
-  MapPin,
-  Layers
-} from 'lucide-react';
+import { FileText, Download, CheckCircle2, ExternalLink, Calendar, MapPin } from 'lucide-react';
 
 const evidenceData = [
   {
@@ -18,7 +9,7 @@ const evidenceData = [
     source: 'Sentinel-2',
     date: '12 Oct 2026',
     relevance: 'High',
-    relevanceColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    relevanceColor: 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60',
     image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80',
     details: {
       dateAcquired: '12 Oct 2026',
@@ -36,7 +27,7 @@ const evidenceData = [
     source: 'Source A',
     date: '20 Oct 2026',
     relevance: 'Medium',
-    relevanceColor: 'bg-amber-50 text-amber-700 border-amber-200',
+    relevanceColor: 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/60',
     image: null,
     details: {
       dateAcquired: '20 Oct 2026',
@@ -54,7 +45,7 @@ const evidenceData = [
     source: 'Source B',
     date: '20 Oct 2026',
     relevance: 'Medium',
-    relevanceColor: 'bg-amber-50 text-amber-700 border-amber-200',
+    relevanceColor: 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/60',
     image: null,
     details: {
       dateAcquired: '20 Oct 2026',
@@ -80,43 +71,40 @@ export default function EvidenceExplorerPage() {
 
   return (
     <div className="space-y-6 max-w-[1500px] mx-auto">
-      {/* Title & Subtitle */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Evidence Explorer</h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Evidence Explorer</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
           Explore and analyze evidence related to your claim.
         </p>
       </div>
 
-      {/* Claim Banner Container */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-3">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-2xs space-y-3">
         <div className="flex items-center gap-2">
-          <span className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
+          <span className="w-6 h-6 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs">
             S
           </span>
-          <h2 className="text-base font-bold text-slate-900">
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
             Claim: Did flooding occur in Area A on 20 October?
           </h2>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 pt-1 border-t border-slate-100 text-xs text-slate-600">
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-1 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5 font-medium">
-              <MapPin className="w-3.5 h-3.5 text-slate-400" /> AOI: <strong className="text-slate-800">Area A</strong>
+              <MapPin className="w-3.5 h-3.5 text-slate-400" /> AOI: <strong className="text-slate-800 dark:text-slate-200">Area A</strong>
             </span>
             <span className="flex items-center gap-1.5 font-medium">
-              <Calendar className="w-3.5 h-3.5 text-slate-400" /> Time: <strong className="text-slate-800">12–20 Oct 2026</strong>
+              <Calendar className="w-3.5 h-3.5 text-slate-400" /> Time: <strong className="text-slate-800 dark:text-slate-200">12–20 Oct 2026</strong>
             </span>
           </div>
 
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
             <CheckCircle2 className="w-3.5 h-3.5" /> Status: Completed
           </span>
         </div>
       </div>
 
-      {/* Filter Tabs & Export Button */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-3">
         <div className="flex items-center gap-2">
           {[
             { label: 'All Evidence', count: 3 },
@@ -130,7 +118,7 @@ export default function EvidenceExplorerPage() {
               className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
                 activeTab === tab.label
                   ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
             >
               {tab.label} ({tab.count})
@@ -138,14 +126,12 @@ export default function EvidenceExplorerPage() {
           ))}
         </div>
 
-        <button className="flex items-center gap-2 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs">
+        <button className="flex items-center gap-2 px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-2xs">
           <Download className="w-3.5 h-3.5" /> Export
         </button>
       </div>
 
-      {/* Main Grid: Left List (1 col), Right Detail View (1 col) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        {/* Evidence Item Selection List */}
         <div className="space-y-3">
           {filteredEvidence.map((item) => {
             const isSelected = selectedEvidence.id === item.id;
@@ -155,8 +141,8 @@ export default function EvidenceExplorerPage() {
                 onClick={() => setSelectedEvidence(item)}
                 className={`p-4 rounded-2xl border cursor-pointer transition-all ${
                   isSelected
-                    ? 'bg-blue-50/40 border-blue-500 shadow-xs'
-                    : 'bg-white border-slate-200 hover:border-slate-300'
+                    ? 'bg-blue-50/40 dark:bg-blue-950/40 border-blue-500 shadow-xs'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
                 }`}
               >
                 <div className="flex items-start gap-4">
@@ -164,22 +150,22 @@ export default function EvidenceExplorerPage() {
                     <img
                       src={item.image}
                       alt={item.title}
-                      className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0"
+                      className="w-16 h-16 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0"
                     />
                   ) : (
-                    <div className="w-16 h-16 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                    <div className="w-16 h-16 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
                       <FileText className="w-7 h-7" />
                     </div>
                   )}
 
                   <div className="flex-1 min-w-0 space-y-1">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-slate-900 text-sm">{item.title}</h3>
+                      <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{item.title}</h3>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${item.relevanceColor}`}>
                         Relevance {item.relevance}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       {item.date} • {item.source}
                     </p>
                   </div>
@@ -189,37 +175,36 @@ export default function EvidenceExplorerPage() {
           })}
         </div>
 
-        {/* Selected Evidence Inspector Panel */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-5">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xs space-y-5">
           <div className="flex items-start gap-4">
             {selectedEvidence.image ? (
               <img
                 src={selectedEvidence.image}
                 alt={selectedEvidence.title}
-                className="w-24 h-24 rounded-xl object-cover border border-slate-200 shrink-0"
+                className="w-24 h-24 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0"
               />
             ) : (
-              <div className="w-24 h-24 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+              <div className="w-24 h-24 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
                 <FileText className="w-10 h-10" />
               </div>
             )}
 
             <div className="space-y-1">
-              <h2 className="text-lg font-bold text-slate-900">{selectedEvidence.title}</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{selectedEvidence.title}</h2>
               <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs pt-1">
-                <span className="text-slate-400">Date Acquired:</span>
-                <span className="font-semibold text-slate-800">{selectedEvidence.details.dateAcquired}</span>
+                <span className="text-slate-400 dark:text-slate-500">Date Acquired:</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedEvidence.details.dateAcquired}</span>
 
-                <span className="text-slate-400">Satellite / Source:</span>
-                <span className="font-semibold text-slate-800">{selectedEvidence.details.satellite}</span>
+                <span className="text-slate-400 dark:text-slate-500">Satellite / Source:</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedEvidence.details.satellite}</span>
 
-                <span className="text-slate-400">Resolution:</span>
-                <span className="font-semibold text-slate-800">{selectedEvidence.details.resolution}</span>
+                <span className="text-slate-400 dark:text-slate-500">Resolution:</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedEvidence.details.resolution}</span>
 
-                <span className="text-slate-400">Coverage:</span>
-                <span className="font-semibold text-slate-800">{selectedEvidence.details.coverage}</span>
+                <span className="text-slate-400 dark:text-slate-500">Coverage:</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedEvidence.details.coverage}</span>
 
-                <span className="text-slate-400">Relevance:</span>
+                <span className="text-slate-400 dark:text-slate-500">Relevance:</span>
                 <span className={`inline-block font-bold text-[11px] px-2 py-0.5 rounded border w-fit ${selectedEvidence.relevanceColor}`}>
                   {selectedEvidence.details.relevance}
                 </span>
@@ -227,13 +212,13 @@ export default function EvidenceExplorerPage() {
             </div>
           </div>
 
-          <hr className="border-slate-100" />
+          <hr className="border-slate-100 dark:border-slate-800" />
 
           <div>
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+            <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
               Description & Analysis
             </h4>
-            <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
               {selectedEvidence.details.description}
             </p>
           </div>

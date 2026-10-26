@@ -22,7 +22,7 @@ const navItems = [
 
 export default function Sidebar({ activePage, setActivePage }) {
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 flex flex-col justify-between p-4 h-screen sticky top-0">
+    <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between p-4 h-screen sticky top-0 transition-colors">
       <div>
         {/* Logo Header */}
         <div className="flex items-center gap-3 px-3 py-2 mb-6">
@@ -30,8 +30,8 @@ export default function Sidebar({ activePage, setActivePage }) {
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="font-bold text-slate-900 leading-tight text-lg">TRUST-GEO</h1>
-            <p className="text-[10px] text-slate-500 font-medium">Geospatial AI Reliability</p>
+            <h1 className="font-bold text-slate-900 dark:text-slate-100 leading-tight text-lg">TRUST-GEO</h1>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Geospatial AI Reliability</p>
           </div>
         </div>
 
@@ -46,11 +46,11 @@ export default function Sidebar({ activePage, setActivePage }) {
                 onClick={() => setActivePage(item.id)}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ${
                   isActive
-                    ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-semibold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'}`} />
                 {item.label}
               </button>
             );
@@ -59,9 +59,9 @@ export default function Sidebar({ activePage, setActivePage }) {
       </div>
 
       {/* Footer info tag */}
-      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-        <p className="text-xs font-medium text-slate-500">Prototype • Synthetic Data</p>
-        <p className="text-[10px] text-slate-400 mt-0.5">v1.0</p>
+      <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
+        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Prototype • Synthetic Data</p>
+        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">v1.0</p>
       </div>
     </aside>
   );

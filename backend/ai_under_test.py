@@ -7,7 +7,7 @@ audits that answer with its deterministic checks. The AI never decides TRUST-GEO
 Python rules do.
 
 Providers (chosen with TRUST_GEO_AI_PROVIDER, or automatically from whichever key is set):
-- "groq":      GROQ_API_KEY      (free tier; open models such as Llama)
+- "groq":      GROQ_API_KEY      (free tier; open models such as gpt-oss)
 - "anthropic": ANTHROPIC_API_KEY (Claude)
 
 Answers are recorded to data/ai_responses.json so demos and the benchmark can replay them
@@ -27,7 +27,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from backend.schemas import Claim, Evidence, Finding, Verdict
 
-DEFAULT_MODELS = {"groq": "llama-3.3-70b-versatile", "anthropic": "claude-opus-5-5"}
+DEFAULT_MODELS = {"groq": "openai/gpt-oss-120b", "anthropic": "claude-opus-5-5"}
 PROMPT_VERSION = "v1"
 RESPONSES_PATH = Path(__file__).resolve().parent.parent / "data" / "ai_responses.json"
 
@@ -133,7 +133,7 @@ def _ask_groq(system: str, user_prompt: str) -> Dict[str, Any]:
         ],
         response_format={"type": "json_object"},
         temperature=0,
-        max_completion_tokens=1024,
+        max_completion_tokens=4096,
     )
     choice = completion.choices[0]
     return {"text": choice.message.content or "", "model": completion.model, "refused": False}

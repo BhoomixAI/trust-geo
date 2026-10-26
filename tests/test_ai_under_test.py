@@ -54,7 +54,7 @@ def test_provider_detection(monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "a")
     assert ait.provider() == "anthropic" and ait.model_name() == "claude-opus-5-5"
     monkeypatch.setenv("GROQ_API_KEY", "g")
-    assert ait.provider() == "groq" and ait.model_name() == "llama-3.3-70b-versatile"
+    assert ait.provider() == "groq" and ait.model_name() == "openai/gpt-oss-120b"
     monkeypatch.setenv("TRUST_GEO_AI_PROVIDER", "anthropic")
     assert ait.provider() == "anthropic"
     monkeypatch.setenv("TRUST_GEO_AI_MODEL", "some-model")
@@ -168,6 +168,8 @@ def test_ai_benchmark_metrics_from_recorded_answers():
     # Every wrong answer here is an unearned SUPPORTED, so TRUST-GEO flags all of them, and only them.
     assert m["wrong_answers_caught"]["numerator"] == m["wrong_answers_caught"]["denominator"] == 10
     assert m["flag_precision"]["value"] == 1.0
+    assert m["unsafe_answers_caught"] == {"numerator": 10, "denominator": 10, "value": 1.0}
+    assert m["abstain_mismatches"]["numerator"] == 0
     json.dumps(report)
 
 

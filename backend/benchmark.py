@@ -100,6 +100,8 @@ def compute_ai_metrics(rows: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
     - flagged_by_trust_geo:     answers TRUST-GEO judged not justified / answered cases
     - flag_precision:           flagged answers that were in fact wrong / flagged answers
     - wrong_answers_caught:     wrong AI answers TRUST-GEO flagged as not justified / wrong AI answers
+    - unsafe_answers_caught:    wrong firm AI verdicts (SUPPORTED/REFUTED) flagged / wrong firm AI verdicts
+    - abstain_mismatches:       AI abstained but chose the other abstain verdict / answered cases
     """
     answered = [r for r in rows if r["answer"].get("verdict")]
     correct = [r for r in answered if r["answer"]["verdict"] == r["expected_verdict"]]
@@ -131,6 +133,11 @@ def compute_ai_metrics(rows: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
         "flagged_by_trust_geo": ratio(len(flagged), len(answered)),
         "flag_precision": ratio(sum(r in wrong for r in flagged), len(flagged)),
         "wrong_answers_caught": ratio(sum(r in flagged for r in wrong), len(wrong)),
+        "unsafe_answers_caught": ratio(
+            sum(r in flagged for r in wrong if r["answer"]["verdict"] in ("SUPPORTED", "REFUTED")),
+            sum(1 for r in wrong if r["answer"]["verdict"] in ("SUPPORTED", "REFUTED")),
+        ),
+        "abstain_mismatches": ratio(sum("AI_ABSTAIN_MISMATCH" in codes(r) for r in answered), len(answered)),
     }
 
 

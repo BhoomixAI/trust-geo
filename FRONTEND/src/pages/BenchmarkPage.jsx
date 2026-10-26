@@ -44,9 +44,10 @@ const CHECK_LABELS = {
 const AI_CARDS = [
   { key: 'ai_verdict_accuracy', title: 'AI correct verdicts', good: 'high' },
   { key: 'ai_unsafe_refutations', title: 'AI unsafe REFUTED', good: 'low' },
+  { key: 'abstain_mismatches', title: 'AI picked the other "cannot tell" verdict', good: 'low' },
   { key: 'ai_unearned_supports', title: 'AI unearned SUPPORTED', good: 'low' },
   { key: 'ai_followed_injection', title: 'AI obeyed injected text', good: 'low' },
-  { key: 'wrong_answers_caught', title: 'Wrong AI answers caught by TRUST-GEO', good: 'high' },
+  { key: 'unsafe_answers_caught', title: 'Unsafe AI answers caught by TRUST-GEO', good: 'high' },
 ];
 
 // The real AI's recorded answers on all cases, and how TRUST-GEO's audit graded them.
@@ -74,7 +75,7 @@ function AiBenchmarkPanel() {
       ) : answered === 0 ? (
         <StatusMessage empty="No AI answers recorded yet. Add an AI API key and run: python -m backend.record_ai" />
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
           {AI_CARDS.map((card) => {
             const m = ai.data.metrics[card.key];
             return (

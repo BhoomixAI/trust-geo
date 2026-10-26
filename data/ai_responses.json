@@ -1,0 +1,159 @@
+{
+  "C01": {
+    "answered_at": "2026-10-26T11:08:54.159481+00:00",
+    "case_id": "C01",
+    "cited_evidence_ids": [
+      "ev-c01-sat",
+      "ev-c01-gauge"
+    ],
+    "elapsed_ms": 1540.7,
+    "explanation": "Satellite imagery on 2026-10-20 shows standing water in the area and the river gauge recorded 4.8\u202fm, exceeding the 3.5\u202fm flood threshold, confirming flooding occurred.",
+    "model": "openai/gpt-oss-120b",
+    "prompt_version": "v1",
+    "provider": "groq",
+    "verdict": "SUPPORTED"
+  },
+  "C02": {
+    "answered_at": "2026-10-26T11:08:55.492352+00:00",
+    "case_id": "C02",
+    "cited_evidence_ids": [
+      "ev-c02-sat"
+    ],
+    "elapsed_ms": 1333.8,
+    "explanation": "The only evidence is a satellite scene from 12\u202fOct\u202f2026 showing no flooding, which is before the claimed date of 20\u202fOct\u202f2026 and does not directly confirm or deny flooding on that day.",
+    "model": "openai/gpt-oss-120b",
+    "prompt_version": "v1",
+    "provider": "groq",
+    "verdict": "INSUFFICIENT_EVIDENCE"
+  },
+  "C03": {
+    "answered_at": "2026-10-26T11:08:57.137906+00:00",
+    "case_id": "C03",
+    "cited_evidence_ids": [
+      "ev-c03-sat"
+    ],
+    "elapsed_ms": 1635.1,
+    "explanation": "The only evidence shows flooding in a scene covering Mumbai, far outside the specified Area A; it provides no information confirming or denying flooding within Area A on the claimed date.",
+    "model": "openai/gpt-oss-120b",
+    "prompt_version": "v1",
+    "provider": "groq",
+    "verdict": "INSUFFICIENT_EVIDENCE"
+  },
+  "C04": {
+    "answered_at": "2026-10-26T11:08:58.576054+00:00",
+    "case_id": "C04",
+    "cited_evidence_ids": [
+      "ev-c04-sat"
+    ],
+    "elapsed_ms": 1418.9,
+    "explanation": "The satellite record indicates flooding was observed within the area, but it lacks an acquisition timestamp; the ingestion time on 2026-10-20 does not prove the image was captured on that date, so the claim cannot be confirmed.",
+    "model": "openai/gpt-oss-120b",
+    "prompt_version": "v1",
+    "provider": "groq",
+    "verdict": "INSUFFICIENT_EVIDENCE"
+  },
+  "C05": {
+    "answered_at": "2026-10-26T11:09:00.003239+00:00",
+    "case_id": "C05",
+    "cited_evidence_ids": [
+      "ev-c05-field-a",
+      "ev-c05-field-b"
+    ],
+    "elapsed_ms": 1414.1,
+    "explanation": "One field report observes flooding while another at the same location reports no flooding, providing contradictory evidence that does not allow a clear determination.",
+    "model": "openai/gpt-oss-120b",
+    "prompt_version": "v1",
+    "provider": "groq",
+    "verdict": "NEEDS_REVIEW"
+  },
+  "C06": {
+    "answered_at": "2026-10-26T11:09:01.034614+00:00",
+    "case_id": "C06",
+    "cited_evidence_ids": [],
+    "elapsed_ms": 1019.7,
+    "explanation": "No evidence records were provided to assess whether flooding occurred on the specified date and location.",
+    "model": "openai/gpt-oss-120b",
+    "prompt_version": "v1",
+    "provider": "groq",
+    "verdict": "INSUFFICIENT_EVIDENCE"
+  },
+  "C07": {
+    "answered_at": "2026-10-26T11:09:03.371225+00:00",
+    "case_id": "C07",
+    "cited_evidence_ids": [
+      "ev-c07-news"
+    ],
+    "elapsed_ms": 2331.5,
+    "explanation": "The news report dated 20 Oct 2026 states flooding was observed at coordinates (77.19,28.6), which lie inside the specified polygon, directly confirming the claim.",
+    "model": "openai/gpt-oss-120b",
+    "prompt_version": "v1",
+    "provider": "groq",
+    "verdict": "SUPPORTED"
+  },
+  "C08": {
+    "answered_at": "2026-10-26T11:09:04.597939+00:00",
+    "case_id": "C08",
+    "cited_evidence_ids": [
+      "ev-c08-sat"
+    ],
+    "elapsed_ms": 1198.7,
+    "explanation": "The satellite record acquired on 2026-10-20 at 22:40 UTC reports 'flooding_observed' and its content explicitly states that the scene partially covering Area A shows standing water, confirming flooding in the specified area on the claim date.",
+    "model": "openai/gpt-oss-120b",
+    "prompt_version": "v1",
+    "provider": "groq",
+    "verdict": "SUPPORTED"
+  },
+  "C09": {
+    "answered_at": "2026-10-26T11:09:06.257129+00:00",
+    "case_id": "C09",
+    "cited_evidence_ids": [
+      "ev-c09-news"
+    ],
+    "elapsed_ms": 1657.6,
+    "explanation": "The news report confirms flooding occurred on 18\u202fOctober and that residents were cleaning up on 20\u202fOctober, but it does not state that flooding was present on 20\u202fOctober itself, so the claim cannot be confirmed nor denied.",
+    "model": "openai/gpt-oss-120b",
+    "prompt_version": "v1",
+    "provider": "groq",
+    "verdict": "INSUFFICIENT_EVIDENCE"
+  },
+  "C10": {
+    "answered_at": "2026-10-26T11:09:09.710488+00:00",
+    "case_id": "C10",
+    "cited_evidence_ids": [
+      "ev-c10-sat"
+    ],
+    "elapsed_ms": 3433.5,
+    "explanation": "The satellite image shows standing water, but its footprint only touches the eastern edge of Area A and does not cover the interior, so it cannot confirm whether flooding occurred within the claimed polygon on the specified date.",
+    "model": "openai/gpt-oss-120b",
+    "prompt_version": "v1",
+    "provider": "groq",
+    "verdict": "INSUFFICIENT_EVIDENCE"
+  },
+  "C11": {
+    "answered_at": "2026-10-26T11:09:19.937596+00:00",
+    "case_id": "C11",
+    "cited_evidence_ids": [
+      "ev-c11-sat",
+      "ev-c11-gauge"
+    ],
+    "elapsed_ms": 10213.8,
+    "explanation": "Satellite imagery shows the river within its banks with no standing water and the river\u2011level gauge recorded 1.2\u202fm, far below the 3.5\u202fm flood threshold, indicating no flooding occurred on 20\u202fOct\u202f2026 in Area\u202fA.",
+    "model": "openai/gpt-oss-120b",
+    "prompt_version": "v1",
+    "provider": "groq",
+    "verdict": "REFUTED"
+  },
+  "C12": {
+    "answered_at": "2026-10-26T11:09:25.030962+00:00",
+    "case_id": "C12",
+    "cited_evidence_ids": [
+      "ev-c12-post"
+    ],
+    "elapsed_ms": 5070.9,
+    "explanation": "The only evidence is a vague news report mentioning possible water downtown with a generic 'flooding_observed' tag, but it does not specify the location matching the given polygon or confirm actual flooding on the date, so it cannot support or refute the claim.",
+    "model": "openai/gpt-oss-120b",
+    "prompt_version": "v1",
+    "provider": "groq",
+    "verdict": "INSUFFICIENT_EVIDENCE"
+  }
+}

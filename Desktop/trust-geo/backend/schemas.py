@@ -4,16 +4,22 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
-class VerdictEnum(str, Enum):
+class Verdict(str, Enum):
     """Allowed final verdicts for verification results."""
     SUPPORTED = "SUPPORTED"
     REFUTED = "REFUTED"
     INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
     NEEDS_REVIEW = "NEEDS_REVIEW"
+
+
+# Backwards-compatible alias for earlier code.
+VerdictEnum = Verdict
+
+WorkflowMode = Literal["baseline", "protected"]
 
 
 class FindingStatus(str, Enum):
@@ -117,6 +123,11 @@ class Evidence(BaseModel):
 class Finding(BaseModel):
     """Outcome of an individual deterministic verification check."""
     check_name: str = Field(..., min_length=1, description="Name of the deterministic check")
+    code: str = Field(
+        default="UNSPECIFIED",
+        min_length=1,
+        description="Machine-readable outcome code (e.g., TEMPORAL_MATCH, STALE_EVIDENCE, WRONG_LOCATION)",
+    )
     status: FindingStatus = Field(..., description="Check status: PASS, WARN, FAIL, or REVIEW")
     severity: FindingSeverity = Field(..., description="Severity level of the finding")
     evidence_ids: List[str] = Field(default_factory=list, description="IDs of evidence evaluated in this check")
@@ -124,14 +135,39 @@ class Finding(BaseModel):
     details: Dict[str, Any] = Field(default_factory=dict, description="Structured diagnostics and metric values")
 
 
-class VerificationResult(BaseModel):
+class BenchmarkCase(BaseModel):
+    """A labelled benchmark case: a claim, the IDs of its evidence bundle, and a frozen expected verdict."""
+    case_id: str = Field(..., min_length=1, description="Unique case identifier (e.g., C01)")
+    scenario: str = Field(..., min_length=1, description="Short description of the scenario being tested")
+    scenario_tags: List[str] = Field(default_factory=list, description="Tags describing the failure mode tested")
+    claim: Claim = Field(..., description="The claim under test")
+    evidence_ids: List[str] = Field(default_factory=list, description="IDs of evidence items in this case's bundle")
+    expected_verdict: Verdict = Field(..., description="Frozen expected verdict label")
+    reason: str = Field(..., min_length=1, description="One-line rationale for the expected verdict")
+    is_synthetic: bool = Field(default=True, description="Whether this case is synthetic demonstration data")
+
+    @model_validator(mode="after")
+    def validate_case_id_matches_claim(self) -> BenchmarkCase:
+        if self.claim.case_id != self.case_id:
+            raise ValueError(
+                f"case_id '{self.case_id}' does not match claim.case_id '{self.claim.case_id}'."
+            )
+        return self
+
+
+class RunResult(BaseModel):
     """Auditable result of running a verification workflow on a claim."""
     run_id: str = Field(..., min_length=1, description="Unique identifier for this verification run")
     case_id: str = Field(..., min_length=1, description="Identifier of the claim being verified")
-    workflow_mode: str = Field(..., description="Workflow mode (e.g., 'baseline', 'protected')")
-    verdict: VerdictEnum = Field(..., description="Final verification verdict")
+    mode: WorkflowMode = Field(..., description="Workflow mode: 'baseline' or 'protected'")
+    verdict: Verdict = Field(..., description="Final verification verdict")
     findings: List[Finding] = Field(default_factory=list, description="List of findings from deterministic checks")
     evidence_ids: List[str] = Field(default_factory=list, description="List of all evidence IDs considered")
+    next_evidence_needed: List[str] = Field(
+        default_factory=list,
+        description="Concrete evidence that would resolve remaining uncertainty",
+    )
+    elapsed_ms: float = Field(default=0.0, ge=0.0, description="Workflow execution time in milliseconds")
     timestamp: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         description="Timestamp when verification completed (timezone-aware)"

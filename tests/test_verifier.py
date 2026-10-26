@@ -60,7 +60,10 @@ def test_run_result_fields(case_runs):
     assert r.elapsed_ms >= 0
     assert r.synthetic_demo is True
     assert r.explanation
-    assert any("72h" in n for n in r.next_evidence_needed)
+    assert any("within 3 days of 20 Oct 2026" in n and "7.6 days away" in n for n in r.next_evidence_needed)
+    stale = next(f for f in r.findings if f.code == "STALE_EVIDENCE")
+    assert "12 Oct 2026, 10:20 UTC" in stale.explanation
+    assert "7.6 days before the claimed date (20 Oct 2026)" in stale.explanation
     assert all(f.code != "UNSPECIFIED" for f in r.findings)
 
 

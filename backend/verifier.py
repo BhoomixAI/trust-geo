@@ -15,6 +15,8 @@ from typing import Callable, Dict, FrozenSet, Iterable, List, Optional, Tuple
 from backend.checks import (
     check_evidence_contradictions,
     extract_evidence_polarity,
+    format_duration,
+    format_window,
     run_injection_checks,
     run_metadata_checks,
     run_spatial_checks,
@@ -162,19 +164,20 @@ def next_evidence_needed(claim: Claim, evidence: List[Evidence], findings: List[
     if verdict in (Verdict.SUPPORTED, Verdict.REFUTED):
         return []
 
-    window = f"{claim.claim_start.isoformat()} to {claim.claim_end.isoformat()}"
+    window = format_window(claim.claim_start, claim.claim_end)
     needs: List[str] = []
     if not evidence:
-        needs.append(f"Any observation of the claimed area during {window} (e.g. a satellite pass or a gauge reading).")
+        needs.append(f"Any observation of the claimed area on {window}, such as a satellite pass or a river gauge reading.")
 
     for f in findings:
         ids = ", ".join(f.evidence_ids)
         if f.code == "STALE_EVIDENCE":
-            threshold = f.details.get("freshness_threshold_hours")
-            needs.append(f"An observation acquired within {threshold:g}h of {window}; {ids} is "
-                         f"{f.details.get('temporal_gap_hours'):g}h away.")
+            threshold = format_duration(f.details.get("freshness_threshold_hours"))
+            gap = format_duration(f.details.get("temporal_gap_hours"))
+            needs.append(f"An observation taken within {threshold} of {window}. "
+                         f"The current one ({ids}) is {gap} away.")
         elif f.code == "TEMPORAL_UNKNOWN":
-            needs.append(f"The acquisition timestamp for {ids} (ingestion or publication time is not acquisition time).")
+            needs.append(f"The date {ids} was actually observed. Ingestion or publication time is not the observation time.")
         elif f.code == "PUBLICATION_DATE_ONLY":
             needs.append(f"The actual event date described in {ids}; its publication date is not the event date.")
         elif f.code == "WRONG_LOCATION":

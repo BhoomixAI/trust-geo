@@ -36,6 +36,27 @@ FRESHNESS_HOURS_BY_EVENT: Dict[str, float] = {
     "drought": 720.0,
 }
 
+
+def format_duration(hours: float) -> str:
+    """Human-readable duration: '7.6 days' from 48h upward, otherwise '12 hours'."""
+    if hours >= 48:
+        return f"{hours / 24:.1f}".rstrip("0").rstrip(".") + " days"
+    return f"{hours:.0f} hour{'' if round(hours) == 1 else 's'}"
+
+
+def format_moment(dt: datetime) -> str:
+    """Human-readable UTC time, e.g. '12 Oct 2026, 10:20 UTC'."""
+    utc = dt.astimezone(timezone.utc)
+    return f"{utc.day} {utc:%b %Y, %H:%M} UTC"
+
+
+def format_window(start: datetime, end: datetime) -> str:
+    """Human-readable claim window: '20 Oct 2026' for a single day, otherwise a date range."""
+    s, e = start.astimezone(timezone.utc), end.astimezone(timezone.utc)
+    if s.date() == e.date():
+        return f"{s.day} {s:%b %Y}"
+    return f"{s.day} {s:%b %Y} to {e.day} {e:%b %Y}"
+
 # Standard required metadata attributes per source type
 DEFAULT_REQUIRED_METADATA: Dict[str, List[str]] = {
     "satellite": ["platform", "cloud_cover_pct", "resolution_m"],
@@ -402,7 +423,7 @@ def check_evidence_contradictions(
                         f"Direct contradiction detected between evidence '{ev_a.evidence_id}' "
                         f"(reports '{pol_a}') and '{ev_b.evidence_id}' (reports '{pol_b}') "
                         f"for event '{claim.event_type}'. Both sources refer to overlapping spatial "
-                        f"and temporal intervals (delta: {time_diff_hours:.1f}h). "
+                        f"and times ({format_duration(time_diff_hours)} apart). "
                         "Neither source is arbitrarily favored; flagged for human review."
                     ),
                     details={
@@ -538,9 +559,9 @@ def check_temporal_relevance(
                 severity=FindingSeverity.MEDIUM,
                 evidence_ids=[evidence_id],
                 explanation=(
-                    f"Evidence '{evidence_id}' lacks an acquisition timestamp ('acquired_at'). "
-                    f"Publication timestamp ('published_at': {evidence.published_at.isoformat()}) is present, "
-                    "but publication date cannot be conflated with the physical event or observation date."
+                    f"Evidence '{evidence_id}' has no observation date, only a publication date "
+                    f"({format_moment(evidence.published_at)}). A report published on a date may describe "
+                    "an event from an earlier day, so the publication date is not used as the event date."
                 ),
                 details={
                     "missing_field": "acquired_at",
@@ -555,8 +576,8 @@ def check_temporal_relevance(
             severity=FindingSeverity.HIGH,
             evidence_ids=[evidence_id],
             explanation=(
-                f"Evidence '{evidence_id}' has neither acquisition timestamp ('acquired_at') "
-                "nor publication timestamp ('published_at'). Temporal relevance cannot be established."
+                f"Evidence '{evidence_id}' has no observation date and no publication date, "
+                "so there is no way to tell whether it describes the claimed date."
             ),
             details={"missing_field": "acquired_at", "has_published_at": False},
         )
@@ -573,8 +594,8 @@ def check_temporal_relevance(
             severity=FindingSeverity.INFO,
             evidence_ids=[evidence_id],
             explanation=(
-                f"Evidence '{evidence_id}' was acquired at {acq.isoformat()}, "
-                f"which falls directly within the claim interval ({claim.claim_start.isoformat()} to {claim.claim_end.isoformat()})."
+                f"Evidence '{evidence_id}' was observed on {format_moment(acq)}, "
+                f"within the claimed date ({format_window(claim.claim_start, claim.claim_end)})."
             ),
             details={
                 "temporal_gap_hours": 0.0,
@@ -592,6 +613,8 @@ def check_temporal_relevance(
         direction = "after claim_end"
 
     gap_hours = gap_seconds / 3600.0
+    when = "before" if direction == "before claim_start" else "after"
+    claimed = format_window(claim.claim_start, claim.claim_end)
 
     if gap_hours <= threshold:
         return Finding(
@@ -601,8 +624,9 @@ def check_temporal_relevance(
             severity=FindingSeverity.LOW,
             evidence_ids=[evidence_id],
             explanation=(
-                f"Evidence '{evidence_id}' was acquired {gap_hours:.1f} hours {direction}. "
-                f"This is outside the exact claim interval but within the acceptable freshness threshold of {threshold:.1f} hours."
+                f"Evidence '{evidence_id}' was observed {format_duration(gap_hours)} {when} the claimed date "
+                f"({claimed}), on {format_moment(acq)}. That is within the "
+                f"{format_duration(threshold)} limit for {claim.event_type}, so it still counts."
             ),
             details={
                 "temporal_gap_hours": round(gap_hours, 2),
@@ -621,9 +645,10 @@ def check_temporal_relevance(
         severity=FindingSeverity.HIGH,
         evidence_ids=[evidence_id],
         explanation=(
-            f"Evidence '{evidence_id}' was acquired {gap_hours:.1f} hours {direction}, "
-            f"exceeding the maximum freshness threshold of {threshold:.1f} hours. "
-            "Evidence is temporally stale or irrelevant to this claim interval."
+            f"Evidence '{evidence_id}' was observed on {format_moment(acq)}, "
+            f"{format_duration(gap_hours)} {when} the claimed date ({claimed}). "
+            f"The limit for {claim.event_type} is {format_duration(threshold)}, so it is too old "
+            "to show conditions on the claimed date."
         ),
         details={
             "temporal_gap_hours": round(gap_hours, 2),

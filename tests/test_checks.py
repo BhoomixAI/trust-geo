@@ -112,7 +112,7 @@ def test_temporal_missing_acquired_at_distinct_published_at(sample_claim: Claim)
     assert finding.severity == FindingSeverity.MEDIUM
     assert finding.details["missing_field"] == "acquired_at"
     assert finding.details["has_published_at"] is True
-    assert "conflated" in finding.explanation.lower() or "distinct" in finding.explanation.lower()
+    assert "publication date is not used as the event date" in finding.explanation.lower()
 
 
 def test_temporal_missing_all_timestamps(sample_claim: Claim):
@@ -743,3 +743,16 @@ def test_every_finding_has_a_real_code(sample_claim):
                 + run_metadata_checks(ev) + check_evidence_contradictions(sample_claim, ev)
                 + run_injection_checks(ev))
     assert all(f.code != "UNSPECIFIED" for f in findings)
+
+
+def test_human_readable_formatting():
+    from backend.checks import format_duration, format_moment, format_window
+    assert format_duration(181.67) == "7.6 days"
+    assert format_duration(72) == "3 days"
+    assert format_duration(12) == "12 hours"
+    assert format_duration(1) == "1 hour"
+    t = datetime(2026, 10, 12, 10, 20, tzinfo=timezone.utc)
+    assert format_moment(t) == "12 Oct 2026, 10:20 UTC"
+    day_end = datetime(2026, 10, 20, 23, 59, 59, tzinfo=timezone.utc)
+    assert format_window(datetime(2026, 10, 20, tzinfo=timezone.utc), day_end) == "20 Oct 2026"
+    assert format_window(t, day_end) == "12 Oct 2026 to 20 Oct 2026"

@@ -75,6 +75,24 @@ Vite proxies `/api` to the backend, so open http://localhost:5173. The server is
 
 Errors return JSON `{"error": "..."}` with status 400, 404, 405 or 500.
 
+## Deploy (Render)
+
+The app deploys as one Docker web service: the `Dockerfile` builds the React app, then runs
+the Python server, which serves both the app and `/api` on the port Render provides.
+
+1. Sign in at https://render.com with the GitHub account that can access this repository.
+2. **New → Blueprint**, pick this repository. Render reads `render.yaml` and creates the
+   `trust-geo` web service on the free plan.
+3. Wait for the build (a few minutes), then open the `https://trust-geo-….onrender.com` URL.
+   `/api/health` should return `{"status": "ok", ...}`.
+
+Every push to `master` redeploys automatically. On the free plan the service sleeps after
+15 minutes without traffic (the first request then takes up to about a minute), and the audit
+history resets on each redeploy or restart because the filesystem is temporary.
+
+To run the production setup locally: `cd FRONTEND && npm run build`, then from the repo root
+`python -m backend.server` and open http://127.0.0.1:8000.
+
 ## Frontend interface
 
 The frontend calls only `backend/api.py`. Every function returns JSON-serialisable data.

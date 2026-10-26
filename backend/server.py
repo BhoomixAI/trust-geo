@@ -15,16 +15,22 @@ Routes (all JSON):
   GET  /api/runs?case_id=&limit=
   GET  /api/runs/{run_id}/export
   POST /api/reset
+
+Any other GET path serves the built React app from STATIC_DIR (FRONTEND/dist by default) when it
+exists, falling back to index.html so the single-page app loads on every route. In production
+(e.g. Render) run:  python -m backend.server --host 0.0.0.0 --port $PORT
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import mimetypes
 import os
 import re
 import traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from urllib.parse import parse_qs, urlparse
 
@@ -32,6 +38,11 @@ from backend import __version__, api, storage
 from backend.evidence_loader import AcquisitionLookupError, CaseLoadError, EvidenceLoadError
 
 MAX_BODY_BYTES = 64 * 1024
+
+# Built frontend to serve for non-API paths. Override with TRUST_GEO_STATIC_DIR.
+STATIC_DIR = Path(
+    os.environ.get("TRUST_GEO_STATIC_DIR", Path(__file__).resolve().parent.parent / "FRONTEND" / "dist")
+)
 
 # Browser origins allowed to call the API (Vite dev server by default). Comma-separated override.
 ALLOWED_ORIGINS = {
@@ -175,8 +186,33 @@ class RequestHandler(BaseHTTPRequestHandler):
         status, payload = dispatch(method, url.path, parse_qs(url.query), body)
         self._send(status, payload)
 
+    def _serve_static(self, url_path: str) -> None:
+        """Serve a file from the built frontend; unknown paths get index.html (single-page app)."""
+        root = STATIC_DIR.resolve()
+        index = root / "index.html"
+        if not index.is_file():
+            self._send(404, {"error": "Frontend is not built. Run 'npm run build' in FRONTEND/."})
+            return
+        target = (root / url_path.lstrip("/")).resolve()
+        if root not in target.parents or not target.is_file():
+            target = index  # path traversal, a directory, or a client-side route
+        data = target.read_bytes()
+        content_type = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(data)))
+        # Hashed build assets never change; index.html must always be fresh.
+        cache = "public, max-age=31536000, immutable" if "/assets/" in target.as_posix() else "no-cache"
+        self.send_header("Cache-Control", cache)
+        self.end_headers()
+        self.wfile.write(data)
+
     def do_GET(self) -> None:  # noqa: N802 (http.server naming)
-        self._handle("GET")
+        path = urlparse(self.path).path
+        if path == "/api" or path.startswith("/api/"):
+            self._handle("GET")
+        else:
+            self._serve_static(path)
 
     def do_POST(self) -> None:  # noqa: N802
         self._handle("POST")
@@ -194,10 +230,12 @@ def make_server(host: str = "127.0.0.1", port: int = 8000) -> ThreadingHTTPServe
 def main() -> None:
     parser = argparse.ArgumentParser(description="TRUST-GEO backend HTTP server")
     parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 8000)))
     args = parser.parse_args()
     server = make_server(args.host, args.port)
-    print(f"TRUST-GEO API on http://{args.host}:{args.port}/api  (synthetic demo data; Ctrl+C to stop)")
+    print(f"TRUST-GEO API on http://{args.host}:{args.port}/api  (synthetic demo data; Ctrl+C to stop)", flush=True)
+    if (STATIC_DIR / "index.html").is_file():
+        print(f"Serving frontend from {STATIC_DIR}", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

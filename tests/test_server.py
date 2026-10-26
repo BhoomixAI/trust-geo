@@ -119,3 +119,49 @@ def test_cors_only_for_allowed_origins(base_url):
 def test_evidence_route(base_url):
     status, evidence, _ = call(base_url, "GET", "/api/evidence")
     assert status == 200 and len(evidence) == 19
+
+
+def _get_raw(url):
+    try:
+        with urllib.request.urlopen(url, timeout=10) as resp:
+            return resp.status, resp.headers.get("Content-Type"), resp.read()
+    except urllib.error.HTTPError as e:
+        return e.code, e.headers.get("Content-Type"), e.read()
+
+
+@pytest.fixture
+def built_frontend(tmp_path, monkeypatch):
+    dist = tmp_path / "dist"
+    (dist / "assets").mkdir(parents=True)
+    (dist / "index.html").write_text("<!doctype html><div id=root></div>", encoding="utf-8")
+    (dist / "assets" / "app.js").write_text("console.log(1)", encoding="utf-8")
+    (tmp_path / "secret.txt").write_text("do not serve", encoding="utf-8")
+    monkeypatch.setattr(server, "STATIC_DIR", dist)
+    return dist
+
+
+def test_serves_frontend_and_spa_fallback(base_url, built_frontend):
+    status, ctype, body = _get_raw(base_url + "/")
+    assert status == 200 and "text/html" in ctype and b"id=root" in body
+    status, ctype, body = _get_raw(base_url + "/assets/app.js")
+    assert status == 200 and "javascript" in ctype and body == b"console.log(1)"
+    status, _, body = _get_raw(base_url + "/comparison")
+    assert status == 200 and b"id=root" in body
+
+
+def test_static_never_escapes_dist(base_url, built_frontend):
+    status, _, body = _get_raw(base_url + "/..%2Fsecret.txt")
+    assert b"do not serve" not in body
+    status, _, body = _get_raw(base_url + "/../secret.txt")
+    assert b"do not serve" not in body
+
+
+def test_api_routes_still_json_when_frontend_built(base_url, built_frontend):
+    assert call(base_url, "GET", "/api/health")[1]["status"] == "ok"
+    assert call(base_url, "GET", "/api/nope")[0] == 404
+
+
+def test_missing_frontend_build_is_clear(base_url, tmp_path, monkeypatch):
+    monkeypatch.setattr(server, "STATIC_DIR", tmp_path / "no-dist")
+    status, payload, _ = call(base_url, "GET", "/")
+    assert status == 404 and "not built" in payload["error"]

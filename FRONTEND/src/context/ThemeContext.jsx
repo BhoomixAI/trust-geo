@@ -4,7 +4,7 @@ const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('trust_geo_theme') || 'Light';
+    return localStorage.getItem('trust_geo_theme') || 'Dark';
   });
 
   useEffect(() => {

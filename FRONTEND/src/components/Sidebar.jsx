@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   Home, 
   PlusCircle, 
@@ -22,11 +21,11 @@ const navItems = [
 
 export default function Sidebar({ activePage, setActivePage }) {
   return (
-    <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between p-4 h-screen sticky top-0 transition-colors">
+    <aside className="hidden md:flex w-64 shrink-0 bg-white dark:bg-[#061426] border-r border-slate-200 dark:border-cyan-950/70 flex-col justify-between p-4 h-screen sticky top-0 transition-colors">
       <div>
         {/* Logo Header */}
         <div className="flex items-center gap-3 px-3 py-2 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 ring-1 ring-cyan-300/20">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>

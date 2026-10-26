@@ -3,7 +3,39 @@
 @variant dark (&:where(.dark, .dark *));
 
 @layer base {
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: #f8fafc;
+    color: #0f172a;
+    transition: background-color 200ms ease, color 200ms ease;
+  }
+
+  html.dark body {
+    background: #020814;
+    color: #f2f7ff;
+  }
+
   body {
     @apply bg-slate-50 text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100;
   }
 }
+
+.tg-app-shell {
+  background-image: radial-gradient(ellipse at 75% 0%, rgba(4, 55, 89, .16), transparent 40%);
+}
+
+.dark ::selection {
+  color: #f2f7ff;
+  background: rgba(0, 160, 220, .42);
+}
+
+.dark ::-webkit-scrollbar { width: 10px; height: 10px; }
+.dark ::-webkit-scrollbar-track { background: #020814; }
+.dark ::-webkit-scrollbar-thumb { border: 2px solid #020814; border-radius: 10px; background: #173450; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #205474; }

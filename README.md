@@ -46,7 +46,7 @@ The audit database defaults to `data/trust_geo.db` (git-ignored). Override with 
 Two terminals:
 
 ```bash
-# 1. Backend API on http://127.0.0.1:8000  (from Desktop/trust-geo)
+# 1. Backend API on http://127.0.0.1:8000  (from the repo root)
 python -m backend.server
 
 # 2. Frontend on http://localhost:5173  (from FRONTEND/)
@@ -111,6 +111,7 @@ data/
   stac_cache.json         cached real catalogue metadata for offline demos
 docs/TRUST_GEO_Technical_Guide.pdf
 tests/
+FRONTEND/                 React (Vite) app; calls the backend through /api
 ```
 
 ## Conventions

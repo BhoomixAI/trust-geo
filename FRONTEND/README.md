@@ -2,7 +2,7 @@
 
 ## Running with the backend
 
-1. Start the Python backend (from `Desktop/trust-geo`): `python -m backend.server` (listens on 127.0.0.1:8000)
+1. Start the Python backend (from the repo root): `python -m backend.server` (listens on 127.0.0.1:8000)
 2. Start this app: `npm install` then `npm run dev`, and open http://localhost:5173
 
 Vite proxies `/api` to the backend (see `vite.config.js`). All backend calls go through

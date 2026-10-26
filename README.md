@@ -10,7 +10,13 @@ goes through two workflows:
 - **Protected**: deterministic checks (time, place, metadata, contradiction, prompt injection),
   then a rule-based Python verdict policy.
 
-A benchmark of 12 labelled **synthetic** cases compares both. No LLM calls, no API keys.
+A benchmark of 12 labelled **synthetic** cases compares both.
+
+**Real AI under test.** A real AI model (Groq's free tier by default, or Claude) answers each
+case on its own; TRUST-GEO audits every answer and flags the ones the evidence does not justify
+(unsafe REFUTED, unearned SUPPORTED, reliance on stale or off-location evidence, obeying
+injected text, hallucinated evidence IDs). The AI never decides TRUST-GEO's verdict. Answers are
+recorded to `data/ai_responses.json` and replayed, so the demo needs no key or network.
 
 **Live demo:** https://trust-geo.onrender.com (free plan: the first visit after 15 idle minutes takes up to a minute to wake).
 
@@ -39,6 +45,7 @@ pip install -r requirements.txt
 python -m pytest -q                 # run all tests
 python -m backend.demo              # full end-to-end demo: benchmark, ablation, live satellite lookup, export
 python -m backend.demo --offline    # same, using the cached satellite lookup
+python -m backend.record_ai         # ask the real AI every case and record its answers (needs a key in .env)
 ```
 
 The audit database defaults to `data/trust_geo.db` (git-ignored). Override with the `TRUST_GEO_DB` environment variable.

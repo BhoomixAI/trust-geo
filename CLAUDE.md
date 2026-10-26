@@ -50,8 +50,10 @@ SUPPORTED, REFUTED, INSUFFICIENT_EVIDENCE, NEEDS_REVIEW (see Section 9).
 
 ## Non-negotiable rules
 - Time limit: 10 hours. Always choose the simplest version that works.
-- Stack: Python, Pydantic, Shapely, sqlite3, pystac-client, pytest only.
-- No LLM calls, no agent frameworks, no raster processing.
+- Stack: Python, Pydantic, Shapely, sqlite3, pystac-client, pytest; groq/anthropic SDKs for the AI under test.
+- An LLM is used ONLY as the AI under test (backend/ai_under_test.py): it answers, TRUST-GEO audits.
+  An LLM never decides TRUST-GEO's verdict. No agent frameworks, no raster processing.
+- API keys live only in .env (git-ignored) or the host's environment settings, never in code or git.
 - Stale, missing or off-location evidence must NEVER produce REFUTED.
 - Publication date is not event date. Acquisition date is not ingestion date.
 - Missing metadata means unknown, not false.

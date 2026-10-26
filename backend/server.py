@@ -15,6 +15,9 @@ Routes (all JSON):
   GET  /api/runs?case_id=&limit=
   GET  /api/runs/{run_id}/export
   POST /api/reset
+  GET  /api/ai/status
+  POST /api/cases/{case_id}/ai            body: {"live": false}  (true = ask the real AI now)
+  POST /api/ai/benchmark                  body: {"live": false}
 
 Any other GET path serves the built React app from STATIC_DIR (FRONTEND/dist by default) when it
 exists, falling back to index.html so the single-page app loads on every route. In production
@@ -34,7 +37,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from urllib.parse import parse_qs, urlparse
 
-from backend import __version__, api, storage
+from backend import __version__, ai_under_test, api, storage
 from backend.evidence_loader import AcquisitionLookupError, CaseLoadError, EvidenceLoadError
 
 MAX_BODY_BYTES = 64 * 1024
@@ -111,6 +114,9 @@ ROUTES: List[Tuple[str, re.Pattern, Handler]] = [
     ("GET", re.compile(r"^/api/runs$"), lambda m, q, b: api.list_runs(_query(q, "case_id"), _int_query(q, "limit", 100))),
     ("GET", re.compile(r"^/api/runs/([\w-]+)/export$"), lambda m, q, b: json.loads(api.export_run(m[0]))),
     ("POST", re.compile(r"^/api/reset$"), lambda m, q, b: api.reset_demo()),
+    ("GET", re.compile(r"^/api/ai/status$"), lambda m, q, b: api.ai_status()),
+    ("POST", re.compile(r"^/api/cases/([\w-]+)/ai$"), lambda m, q, b: api.run_ai_case(m[0], live=bool(b.get("live")))),
+    ("POST", re.compile(r"^/api/ai/benchmark$"), lambda m, q, b: api.run_ai_benchmark(live=bool(b.get("live")))),
 ]
 
 
@@ -132,6 +138,8 @@ def dispatch(method: str, path: str, query: Dict[str, List[str]], body: Dict[str
             return 404, {"error": str(e).strip("'\"")}
         except (ValueError, AcquisitionLookupError) as e:
             return 400, {"error": str(e)}
+        except ai_under_test.AiNotConfiguredError as e:
+            return 503, {"error": f"{e} Recorded answers are still available."}
         except (CaseLoadError, EvidenceLoadError, storage.StorageError) as e:
             return 500, {"error": f"Backend data error: {e}"}
         except Exception as e:  # report, never hide, unexpected failures

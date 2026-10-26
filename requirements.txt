@@ -3,3 +3,5 @@ shapely>=2.0.0,<3.0.0
 pystac-client>=0.8.0
 pytest>=8.0.0
 python-dotenv>=1.0.0
+anthropic>=2.3.0
+groq>=1.7.0

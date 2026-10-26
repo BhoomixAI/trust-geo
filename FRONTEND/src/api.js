@@ -35,6 +35,9 @@ export const api = {
     request('GET', `/runs?limit=${limit}${caseId ? `&case_id=${encodeURIComponent(caseId)}` : ''}`),
   exportRun: (runId) => request('GET', `/runs/${encodeURIComponent(runId)}/export`),
   reset: () => request('POST', '/reset'),
+  aiStatus: () => request('GET', '/ai/status'),
+  runAiCase: (caseId, live = false) => request('POST', `/cases/${encodeURIComponent(caseId)}/ai`, { live }),
+  runAiBenchmark: (live = false) => request('POST', '/ai/benchmark', { live }),
 };
 
 // Load data on mount (and when deps change). Returns { data, error, loading, reload }.

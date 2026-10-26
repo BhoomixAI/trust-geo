@@ -165,3 +165,16 @@ def test_missing_frontend_build_is_clear(base_url, tmp_path, monkeypatch):
     monkeypatch.setattr(server, "STATIC_DIR", tmp_path / "no-dist")
     status, payload, _ = call(base_url, "GET", "/")
     assert status == 404 and "not built" in payload["error"]
+
+
+def test_ai_routes(base_url, monkeypatch, tmp_path):
+    from backend import ai_under_test
+    for var in ("GROQ_API_KEY", "ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "TRUST_GEO_AI_PROVIDER"):
+        monkeypatch.delenv(var, raising=False)
+    monkeypatch.setattr(ai_under_test, "RESPONSES_PATH", tmp_path / "ai.json")
+    status, body, _ = call(base_url, "GET", "/api/ai/status")
+    assert status == 200 and body["configured"] is False
+    status, body, _ = call(base_url, "POST", "/api/cases/C02/ai", {"live": False})
+    assert status == 200 and body["answer"]["source"] == "unavailable"
+    status, body, _ = call(base_url, "POST", "/api/cases/C02/ai", {"live": True})
+    assert status == 503 and "No AI API key" in body["error"]

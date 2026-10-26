@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Info, Play, Loader2, CheckCircle2, XCircle, Download, FileText } from 'lucide-react';
 import StatusMessage from '../components/StatusMessage';
+import AiAnswerCard from '../components/AiAnswerCard';
 import { api, useApi, VERDICT_STYLES, verdictLabel } from '../api';
 
 const STATUS_DOT = {
@@ -117,6 +118,7 @@ export default function SubmitClaimPage() {
   const [results, setResults] = useState(null);
   const [running, setRunning] = useState(false);
   const [runError, setRunError] = useState(null);
+  const aiStatus = useApi(() => api.aiStatus());
 
   const chooseCase = (id) => {
     setCaseId(id);
@@ -128,11 +130,12 @@ export default function SubmitClaimPage() {
     setRunning(true);
     setRunError(null);
     try {
-      const [baseline, protectedRun] = await Promise.all([
+      const [baseline, protectedRun, ai] = await Promise.all([
         api.runCase(caseId, 'baseline'),
         api.runCase(caseId, 'protected'),
+        api.runAiCase(caseId, false),
       ]);
-      setResults({ baseline, protected: protectedRun });
+      setResults({ baseline, protected: protectedRun, ai });
     } catch (e) {
       setRunError(e);
     } finally {
@@ -331,9 +334,16 @@ export default function SubmitClaimPage() {
 
       {/* Results: side by side */}
       {results && c && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ResultCard title="Baseline workflow" result={results.baseline} expected={c.expected_verdict} />
-          <ResultCard title="Protected workflow" result={results.protected} expected={c.expected_verdict} />
+        <div className="space-y-6">
+          <AiAnswerCard
+            row={results.ai}
+            configured={Boolean(aiStatus.data?.configured)}
+            onLive={(ai) => setResults((r) => ({ ...r, ai }))}
+          />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ResultCard title="Baseline workflow" result={results.baseline} expected={c.expected_verdict} />
+            <ResultCard title="Protected workflow" result={results.protected} expected={c.expected_verdict} />
+          </div>
         </div>
       )}
     </div>

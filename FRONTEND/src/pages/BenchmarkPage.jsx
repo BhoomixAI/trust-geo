@@ -41,6 +41,57 @@ const CHECK_LABELS = {
   prompt_injection_safety: 'Injection check',
 };
 
+const AI_CARDS = [
+  { key: 'ai_verdict_accuracy', title: 'AI correct verdicts', good: 'high' },
+  { key: 'ai_unsafe_refutations', title: 'AI unsafe REFUTED', good: 'low' },
+  { key: 'ai_unearned_supports', title: 'AI unearned SUPPORTED', good: 'low' },
+  { key: 'ai_followed_injection', title: 'AI obeyed injected text', good: 'low' },
+  { key: 'wrong_answers_caught', title: 'Wrong AI answers caught by TRUST-GEO', good: 'high' },
+];
+
+// The real AI's recorded answers on all cases, and how TRUST-GEO's audit graded them.
+function AiBenchmarkPanel() {
+  const ai = useApi(() => api.runAiBenchmark(false));
+  const answered = ai.data?.metrics.answered.numerator ?? 0;
+
+  return (
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xs space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <h2 className="font-bold text-slate-900 dark:text-slate-100 text-base">Real AI under test</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            A real AI model answered every case on its own; TRUST-GEO then checked each answer against the evidence.
+          </p>
+        </div>
+        {ai.data && answered > 0 && (
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/60">
+            {ai.data.cases.find((r) => r.answer.model)?.answer.model} · recorded answers
+          </span>
+        )}
+      </div>
+      {ai.loading || ai.error ? (
+        <StatusMessage loading={ai.loading} error={ai.error} onRetry={ai.reload} />
+      ) : answered === 0 ? (
+        <StatusMessage empty="No AI answers recorded yet. Add an AI API key and run: python -m backend.record_ai" />
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          {AI_CARDS.map((card) => {
+            const m = ai.data.metrics[card.key];
+            return (
+              <div key={card.key} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-1">
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block">{card.title}</span>
+                <span className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                  {m.denominator ? `${m.numerator}/${m.denominator}` : 'n/a'}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function BenchmarkPage() {
   const dash = useApi(() => api.dashboard());
   const ablation = useApi(() => api.ablation());
@@ -112,6 +163,8 @@ export default function BenchmarkPage() {
           );
         })}
       </div>
+
+      <AiBenchmarkPanel />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xs space-y-4">

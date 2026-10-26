@@ -12,7 +12,7 @@ from typing import Any, Dict, List
 
 from shapely.geometry import shape
 
-from backend import benchmark, evidence_loader, storage
+from backend import ai_under_test, benchmark, evidence_loader, storage
 from backend.baseline import run_baseline
 from backend.evidence_loader import (
     DATA_DIR,
@@ -242,6 +242,54 @@ def run_ablation() -> Dict[str, Any]:
     """
     cases, bundles = _all_bundles()
     return benchmark.run_ablation(cases, bundles)
+
+
+def ai_status() -> Dict[str, Any]:
+    """Whether a real AI can be asked live, which model, and which cases have recorded answers."""
+    recorded = ai_under_test.load_recorded()
+    return {
+        "configured": ai_under_test.is_configured(),
+        "provider": ai_under_test.provider(),
+        "model": ai_under_test.model_name(),
+        "recorded_cases": sorted(recorded),
+        "recorded_models": sorted({a.get("model", "?") for a in recorded.values()}),
+    }
+
+
+def run_ai_case(case_id: str, live: bool = False) -> Dict[str, Any]:
+    """Ask the real AI (live, or replay its recorded answer) and audit that answer with TRUST-GEO.
+
+    Shape: {case_id, expected_verdict, answer{verdict, cited_evidence_ids, explanation, model,
+    source: live|recorded|unavailable, ...}, audit{justified, trust_geo_verdict, issues[{code,
+    severity, explanation}]}, protected: RunResult}
+    """
+    case = _find_case(case_id)
+    evidence = resolve_case_evidence(case, _evidence_index())
+    answer = ai_under_test.get_answer(case.claim, evidence, live=live)
+    protected = run_protected(case.claim, evidence)
+    audit = ai_under_test.audit_answer(answer, evidence, protected.findings, protected.verdict)
+    return {
+        "case_id": case.case_id,
+        "expected_verdict": case.expected_verdict.value,
+        "answer": answer,
+        "audit": audit,
+        "protected": protected.model_dump(mode="json"),
+    }
+
+
+def run_ai_benchmark(live: bool = False) -> Dict[str, Any]:
+    """Real AI on all cases (live or recorded), each answer audited by TRUST-GEO.
+
+    Shape: {model, cases: [run_ai_case results], metrics: {...}, notice}
+    """
+    cases = _load_cases()
+    rows = [run_ai_case(c.case_id, live=live) for c in cases]
+    return {
+        "model": ai_under_test.model_name(),
+        "cases": rows,
+        "metrics": benchmark.compute_ai_metrics(rows),
+        "notice": benchmark.NOTICE,
+    }
 
 
 def nearest_acquisitions(bbox: List[float], date: str) -> Dict[str, Any]:

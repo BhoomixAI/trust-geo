@@ -1,0 +1,21 @@
+[
+  {
+    "case_id": "case-flood-delhi-20261020",
+    "claim_text": "Did severe flooding occur in the central river corridor on 20 October 2026?",
+    "event_type": "flooding",
+    "area_of_interest": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [77.15, 28.55],
+          [77.25, 28.55],
+          [77.25, 28.65],
+          [77.15, 28.65],
+          [77.15, 28.55]
+        ]
+      ]
+    },
+    "claim_start": "2026-10-20T00:00:00Z",
+    "claim_end": "2026-10-20T23:59:59Z"
+  }
+]

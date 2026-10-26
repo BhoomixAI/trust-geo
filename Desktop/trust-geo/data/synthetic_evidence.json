@@ -1,0 +1,129 @@
+[
+  {
+    "evidence_id": "ev-sat-01",
+    "source_type": "satellite",
+    "source_id": "SENTINEL2-20261020-FLOOD",
+    "source_url": "https://synthetic.earth.data/sentinel/20261020",
+    "acquired_at": "2026-10-20T10:15:00Z",
+    "published_at": "2026-10-20T14:30:00Z",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [77.10, 28.50],
+          [77.30, 28.50],
+          [77.30, 28.70],
+          [77.10, 28.70],
+          [77.10, 28.50]
+        ]
+      ]
+    },
+    "bbox": [77.10, 28.50, 77.30, 28.70],
+    "metadata": {
+      "platform": "Sentinel-2B",
+      "cloud_cover_pct": 12.4,
+      "resolution_m": 10.0
+    },
+    "content": "Optical multispectral acquisition over sector A indicating extensive surface water accumulation along the river corridor.",
+    "provenance": {
+      "catalog": "Synthetic Earth Search",
+      "ingested_at": "2026-10-20T15:00:00Z",
+      "pipeline_version": "v1.0-synthetic"
+    },
+    "is_synthetic": true
+  },
+  {
+    "evidence_id": "ev-sat-stale",
+    "source_type": "satellite",
+    "source_id": "SENTINEL2-20260410-CLEAR",
+    "source_url": "https://synthetic.earth.data/sentinel/20260410",
+    "acquired_at": "2026-04-10T09:45:00Z",
+    "published_at": "2026-04-10T12:00:00Z",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [77.10, 28.50],
+          [77.30, 28.50],
+          [77.30, 28.70],
+          [77.10, 28.70],
+          [77.10, 28.50]
+        ]
+      ]
+    },
+    "bbox": [77.10, 28.50, 77.30, 28.70],
+    "metadata": {
+      "platform": "Sentinel-2A",
+      "cloud_cover_pct": 2.1,
+      "resolution_m": 10.0
+    },
+    "content": "Historical optical image showing standard dry riverbeds and nominal seasonal vegetation.",
+    "provenance": {
+      "catalog": "Synthetic Earth Search",
+      "ingested_at": "2026-04-10T13:00:00Z",
+      "pipeline_version": "v1.0-synthetic"
+    },
+    "is_synthetic": true
+  },
+  {
+    "evidence_id": "ev-news-pubonly",
+    "source_type": "news_report",
+    "source_id": "DAILY-NEWS-20261021",
+    "source_url": "https://synthetic.news.test/article-1021",
+    "acquired_at": null,
+    "published_at": "2026-10-21T08:00:00Z",
+    "geometry": null,
+    "bbox": null,
+    "metadata": {
+      "publisher": "Synthetic Gazette",
+      "headline": "Emergency Response Dispatched to Low-Lying Districts Following Heavy Rains"
+    },
+    "content": "Officials announced that emergency response teams were deployed following intense rainfall. Exact flooding extent was not specified in the morning brief.",
+    "provenance": {
+      "source": "RSS Feed Synthetic",
+      "retrieved_at": "2026-10-21T09:00:00Z"
+    },
+    "is_synthetic": true
+  },
+  {
+    "evidence_id": "ev-sensor-valid",
+    "source_type": "sensor",
+    "source_id": "RIVER-GAUGE-NODE-402",
+    "source_url": null,
+    "acquired_at": "2026-10-20T12:00:00Z",
+    "published_at": "2026-10-20T12:05:00Z",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [77.22, 28.61]
+    },
+    "bbox": [77.22, 28.61, 77.22, 28.61],
+    "metadata": {
+      "sensor_type": "acoustic_water_level",
+      "unit": "meters",
+      "reading": 4.82,
+      "flood_threshold": 3.50
+    },
+    "content": "Telemetry station 402 water level recorded at 4.82 m, exceeding flood threshold of 3.50 m.",
+    "provenance": {
+      "telemetry_network": "Synthetic Hydrology Mesh",
+      "quality_flag": "QC_PASS"
+    },
+    "is_synthetic": true
+  },
+  {
+    "evidence_id": "ev-sensor-incomplete",
+    "source_type": "sensor",
+    "source_id": "GAUGE-UNVERIFIED-99",
+    "source_url": null,
+    "acquired_at": "2026-10-20T12:30:00Z",
+    "published_at": null,
+    "geometry": null,
+    "bbox": null,
+    "metadata": {
+      "reading": 4.1
+    },
+    "content": "Raw reading without unit or sensor type specification.",
+    "provenance": {},
+    "is_synthetic": true
+  }
+]

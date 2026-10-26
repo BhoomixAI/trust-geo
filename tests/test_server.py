@@ -114,3 +114,8 @@ def test_cors_only_for_allowed_origins(base_url):
     assert headers.get("Access-Control-Allow-Origin") == "http://localhost:5173"
     _, _, headers = call(base_url, "GET", "/api/health", origin="http://evil.example")
     assert "Access-Control-Allow-Origin" not in headers
+
+
+def test_evidence_route(base_url):
+    status, evidence, _ = call(base_url, "GET", "/api/evidence")
+    assert status == 200 and len(evidence) == 19

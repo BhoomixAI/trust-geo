@@ -23,9 +23,9 @@ export default function Header() {
         
         <div className="flex items-center gap-3 pl-2 border-l border-slate-200 dark:border-slate-800">
           <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-semibold text-sm flex items-center justify-center shadow-xs">
-            DD
+            TG
           </div>
-          <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">Devang Dixit</span>
+          <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">TRUST-GEO Team</span>
         </div>
       </div>
     </header>

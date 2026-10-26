@@ -80,6 +80,21 @@ def get_case(case_id: str) -> Dict[str, Any]:
     }
 
 
+def list_evidence() -> List[Dict[str, Any]]:
+    """All evidence items, each with the IDs of the cases that use it.
+
+    Shape: [{...Evidence fields..., case_ids: [...]}], in fixture order.
+    """
+    used_by: Dict[str, List[str]] = {}
+    for case in _load_cases():
+        for eid in case.evidence_ids:
+            used_by.setdefault(eid, []).append(case.case_id)
+    return [
+        {**e.model_dump(mode="json"), "case_ids": used_by.get(e.evidence_id, [])}
+        for e in _evidence_index().values()
+    ]
+
+
 def run_case(case_id: str, mode: str) -> Dict[str, Any]:
     """Run one case in mode "baseline" or "protected" and return a RunResult dict.
 
@@ -171,6 +186,7 @@ def dashboard_summary(recent_limit: int = 10) -> Dict[str, Any]:
             "baseline_latency_ms": m_base["latency_ms"],
         },
         "metrics": report["metrics"],
+        "cases": report["cases"],
         "failure_modes": list(modes.values()),
         "recent_runs": recent_runs,
         "recent_findings": recent_findings,

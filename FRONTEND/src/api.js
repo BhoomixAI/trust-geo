@@ -24,6 +24,7 @@ export const api = {
   health: () => request('GET', '/health'),
   dashboard: () => request('GET', '/dashboard'),
   listCases: () => request('GET', '/cases'),
+  listEvidence: () => request('GET', '/evidence'),
   getCase: (caseId) => request('GET', `/cases/${encodeURIComponent(caseId)}`),
   runCase: (caseId, mode) => request('POST', `/cases/${encodeURIComponent(caseId)}/run`, { mode }),
   runBenchmark: () => request('POST', '/benchmark'),
@@ -60,11 +61,40 @@ export function useApi(fn, deps = []) {
 }
 
 export const VERDICT_STYLES = {
-  SUPPORTED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  REFUTED: 'bg-rose-50 text-rose-700 border-rose-200',
-  INSUFFICIENT_EVIDENCE: 'bg-amber-50 text-amber-700 border-amber-200',
-  NEEDS_REVIEW: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  SUPPORTED:
+    'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60',
+  REFUTED: 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800/60',
+  INSUFFICIENT_EVIDENCE:
+    'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/60',
+  NEEDS_REVIEW:
+    'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/60',
 };
+
+// Chart colours for verdicts (hex, for Recharts).
+export const VERDICT_COLORS = {
+  SUPPORTED: '#10B981',
+  REFUTED: '#F43F5E',
+  INSUFFICIENT_EVIDENCE: '#F59E0B',
+  NEEDS_REVIEW: '#6366F1',
+};
+
+export const fmtDate = (iso) =>
+  iso
+    ? new Date(iso).toLocaleString('en-GB', {
+        day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC',
+      }) + ' UTC'
+    : 'unknown';
+
+export async function downloadAudit(runId) {
+  const record = await api.exportRun(runId);
+  const blob = new Blob([JSON.stringify(record, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `trust-geo-audit-${record.result.case_id}-${record.result.mode}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export const verdictLabel = (v) => (v ? v.replace(/_/g, ' ') : '—');
 

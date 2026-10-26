@@ -39,17 +39,17 @@ function ResultCard({ title, result, expected }) {
   const correct = result.verdict === expected;
   const issues = result.findings.filter((f) => f.status !== 'PASS');
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xs space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-bold text-slate-900 text-base">{title}</h2>
-        <span className="text-[11px] font-mono text-slate-400">{result.elapsed_ms.toFixed(2)} ms</span>
+        <h2 className="font-bold text-slate-900 dark:text-slate-100 text-base">{title}</h2>
+        <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">{result.elapsed_ms.toFixed(2)} ms</span>
       </div>
 
       <div className="flex items-center gap-3 flex-wrap">
         <VerdictBadge verdict={result.verdict} large />
         <span
           className={`inline-flex items-center gap-1 text-xs font-semibold ${
-            correct ? 'text-emerald-600' : 'text-rose-600'
+            correct ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
           }`}
         >
           {correct ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
@@ -57,24 +57,24 @@ function ResultCard({ title, result, expected }) {
         </span>
       </div>
 
-      <p className="text-sm text-slate-700 leading-relaxed">{result.explanation}</p>
+      <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{result.explanation}</p>
 
       {result.mode === 'protected' && (
         <div className="space-y-2">
-          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+          <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             Checks ({result.findings.length - issues.length} passed, {issues.length} flagged)
           </h3>
           {result.findings.length === 0 ? (
-            <p className="text-xs text-slate-500">No checks ran (no evidence).</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">No checks ran (no evidence).</p>
           ) : (
             <ul className="space-y-1.5">
               {result.findings.map((f, idx) => (
                 <li key={idx} className="flex items-start gap-2 text-xs">
                   <span className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${STATUS_DOT[f.status]}`} />
                   <div>
-                    <span className="font-bold text-slate-800">{f.code}</span>
-                    <span className="text-slate-400"> • {f.evidence_ids.join(', ') || '—'}</span>
-                    {f.status !== 'PASS' && <p className="text-slate-500">{f.explanation}</p>}
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{f.code}</span>
+                    <span className="text-slate-400 dark:text-slate-500"> • {f.evidence_ids.join(', ') || '—'}</span>
+                    {f.status !== 'PASS' && <p className="text-slate-500 dark:text-slate-400">{f.explanation}</p>}
                   </div>
                 </li>
               ))}
@@ -84,15 +84,15 @@ function ResultCard({ title, result, expected }) {
       )}
 
       {result.mode === 'baseline' && (
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
           Baseline runs no checks: it takes each evidence item's stated stance at face value and votes.
         </p>
       )}
 
       {result.next_evidence_needed.length > 0 && (
-        <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100">
-          <h3 className="text-xs font-bold text-blue-900 mb-1">Evidence that would settle this</h3>
-          <ul className="list-disc pl-4 space-y-0.5 text-xs text-blue-800">
+        <div className="p-3 bg-blue-50/60 dark:bg-blue-950/60 rounded-xl border border-blue-100 dark:border-blue-900/60">
+          <h3 className="text-xs font-bold text-blue-900 dark:text-blue-200 mb-1">Evidence that would settle this</h3>
+          <ul className="list-disc pl-4 space-y-0.5 text-xs text-blue-800 dark:text-blue-300">
             {result.next_evidence_needed.map((n) => (
               <li key={n}>{n}</li>
             ))}
@@ -102,7 +102,7 @@ function ResultCard({ title, result, expected }) {
 
       <button
         onClick={() => downloadAudit(result.run_id)}
-        className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+        className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 flex items-center gap-1"
       >
         <Download className="w-3.5 h-3.5" /> Export audit record (JSON)
       </button>
@@ -148,30 +148,30 @@ export default function SubmitClaimPage() {
     <div className="space-y-6 max-w-[1400px] mx-auto">
       {/* Page Title & Subtitle */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Test a Claim</h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Test a Claim</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
           Pick a benchmark claim, inspect its evidence, and run the baseline and protected workflows on identical inputs.
         </p>
       </div>
 
       {/* Progress Stepper Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-2xs">
         <div className="flex items-center justify-between max-w-4xl mx-auto px-4">
           {steps.map((name, idx) => (
             <React.Fragment key={name}>
               <div className="flex items-center gap-3">
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-colors ${
-                    stepDone[idx] ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-500 border border-slate-200'
+                    stepDone[idx] ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800'
                   }`}
                 >
                   {idx + 1}
                 </div>
-                <span className={`text-sm font-semibold ${stepDone[idx] ? 'text-slate-900' : 'text-slate-400'}`}>
+                <span className={`text-sm font-semibold ${stepDone[idx] ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500'}`}>
                   {name}
                 </span>
               </div>
-              {idx < steps.length - 1 && <div className="flex-1 h-0.5 bg-slate-100 mx-4 max-w-[80px]" />}
+              {idx < steps.length - 1 && <div className="flex-1 h-0.5 bg-slate-100 dark:bg-slate-800 mx-4 max-w-[80px]" />}
             </React.Fragment>
           ))}
         </div>
@@ -180,18 +180,18 @@ export default function SubmitClaimPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         <div className="lg:col-span-2 space-y-6">
           {/* Card 1: Claim */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4">
-            <h2 className="font-bold text-slate-900 text-base">1. Claim</h2>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xs space-y-4">
+            <h2 className="font-bold text-slate-900 dark:text-slate-100 text-base">1. Claim</h2>
 
             {cases.loading || cases.error ? (
               <StatusMessage loading={cases.loading} error={cases.error} onRetry={cases.reload} />
             ) : (
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Benchmark case</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Benchmark case</label>
                 <select
                   value={caseId}
                   onChange={(e) => chooseCase(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                 >
                   {cases.data.map((cs) => (
                     <option key={cs.case_id} value={cs.case_id}>
@@ -206,27 +206,27 @@ export default function SubmitClaimPage() {
               <StatusMessage loading={detail.loading} error={detail.error} onRetry={detail.reload} />
             ) : (
               <>
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-sm text-slate-800">
+                <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 text-sm text-slate-800 dark:text-slate-200">
                   {c.claim.claim_text}
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
                   <div>
-                    <p className="font-semibold text-slate-500">Event type</p>
-                    <p className="text-slate-800 capitalize">{c.claim.event_type}</p>
+                    <p className="font-semibold text-slate-500 dark:text-slate-400">Event type</p>
+                    <p className="text-slate-800 dark:text-slate-200 capitalize">{c.claim.event_type}</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-500">Window start</p>
-                    <p className="text-slate-800">{fmtDate(c.claim.claim_start)}</p>
+                    <p className="font-semibold text-slate-500 dark:text-slate-400">Window start</p>
+                    <p className="text-slate-800 dark:text-slate-200">{fmtDate(c.claim.claim_start)}</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-500">Window end</p>
-                    <p className="text-slate-800">{fmtDate(c.claim.claim_end)}</p>
+                    <p className="font-semibold text-slate-500 dark:text-slate-400">Window end</p>
+                    <p className="text-slate-800 dark:text-slate-200">{fmtDate(c.claim.claim_end)}</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-500">Scenario tags</p>
+                    <p className="font-semibold text-slate-500 dark:text-slate-400">Scenario tags</p>
                     <div className="flex flex-wrap gap-1 mt-0.5">
                       {c.scenario_tags.map((t) => (
-                        <span key={t} className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono text-[10px]">
+                        <span key={t} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono text-[10px]">
                           {t}
                         </span>
                       ))}
@@ -239,10 +239,10 @@ export default function SubmitClaimPage() {
 
           {/* Card 2: Evidence ledger */}
           {c && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xs space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="font-bold text-slate-900 text-base">2. Evidence ({c.evidence.length})</h2>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
+                <h2 className="font-bold text-slate-900 dark:text-slate-100 text-base">2. Evidence ({c.evidence.length})</h2>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/60">
                   Synthetic fixtures
                 </span>
               </div>
@@ -251,36 +251,36 @@ export default function SubmitClaimPage() {
               ) : (
                 <div className="space-y-3">
                   {c.evidence.map((e) => (
-                    <div key={e.evidence_id} className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/50 space-y-2">
+                    <div key={e.evidence_id} className="p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800 space-y-2">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <FileText className="w-4 h-4 text-slate-400" />
-                        <span className="text-xs font-bold text-slate-900 font-mono">{e.evidence_id}</span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200/60 text-slate-600">{e.source_type}</span>
+                        <FileText className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100 font-mono">{e.evidence_id}</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200/60 dark:bg-slate-700 text-slate-600 dark:text-slate-300">{e.source_type}</span>
                         {e.metadata?.event_status && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600 font-mono">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 font-mono">
                             stance: {e.metadata.event_status}
                           </span>
                         )}
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-[11px]">
                         <div>
-                          <span className="font-semibold text-slate-500">Acquired: </span>
-                          <span className={e.acquired_at ? 'text-slate-800' : 'text-rose-600 font-semibold'}>
+                          <span className="font-semibold text-slate-500 dark:text-slate-400">Acquired: </span>
+                          <span className={e.acquired_at ? 'text-slate-800 dark:text-slate-200' : 'text-rose-600 dark:text-rose-400 font-semibold'}>
                             {fmtDate(e.acquired_at)}
                           </span>
                         </div>
                         <div>
-                          <span className="font-semibold text-slate-500">Published: </span>
-                          <span className="text-slate-800">{fmtDate(e.published_at)}</span>
+                          <span className="font-semibold text-slate-500 dark:text-slate-400">Published: </span>
+                          <span className="text-slate-800 dark:text-slate-200">{fmtDate(e.published_at)}</span>
                         </div>
                         <div>
-                          <span className="font-semibold text-slate-500">Footprint: </span>
-                          <span className={e.bbox ? 'text-slate-800 font-mono' : 'text-rose-600 font-semibold'}>
+                          <span className="font-semibold text-slate-500 dark:text-slate-400">Footprint: </span>
+                          <span className={e.bbox ? 'text-slate-800 dark:text-slate-200 font-mono' : 'text-rose-600 dark:text-rose-400 font-semibold'}>
                             {e.bbox ? `[${e.bbox.join(', ')}]` : 'none'}
                           </span>
                         </div>
                       </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">{e.content}</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{e.content}</p>
                     </div>
                   ))}
                 </div>
@@ -290,15 +290,15 @@ export default function SubmitClaimPage() {
         </div>
 
         {/* Right: expected label */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
-          <h3 className="font-bold text-slate-900 text-sm">Expected verdict (frozen label)</h3>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-2xs space-y-4">
+          <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Expected verdict (frozen label)</h3>
           {c ? (
             <>
               <VerdictBadge verdict={c.expected_verdict} large />
-              <p className="text-xs text-slate-600 leading-relaxed">{c.reason}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{c.reason}</p>
               <div className="space-y-1">
-                <p className="text-xs font-bold text-slate-800">Area of interest</p>
-                <p className="text-[11px] font-mono text-slate-500">
+                <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Area of interest</p>
+                <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
                   {c.claim.area_of_interest.type} • {JSON.stringify(c.claim.area_of_interest.coordinates[0][0])} …
                 </p>
               </div>
@@ -306,9 +306,9 @@ export default function SubmitClaimPage() {
           ) : (
             <StatusMessage loading={detail.loading} />
           )}
-          <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 flex items-start gap-2">
-            <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-            <p className="text-xs text-blue-800 leading-relaxed">
+          <div className="p-3 bg-blue-50/60 dark:bg-blue-950/60 rounded-xl border border-blue-100 dark:border-blue-900/60 flex items-start gap-2">
+            <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
               Synthetic case. The label was fixed before the workflows were run.
             </p>
           </div>
@@ -316,7 +316,7 @@ export default function SubmitClaimPage() {
       </div>
 
       {/* Action Footer */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
         {runError && <div className="flex-1"><StatusMessage error={runError} /></div>}
         <button
           type="button"

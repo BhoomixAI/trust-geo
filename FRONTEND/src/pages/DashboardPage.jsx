@@ -31,19 +31,19 @@ export default function DashboardPage() {
       {/* Top Greeting Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Welcome back, Devang!</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">TRUST-GEO Dashboard</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Test geospatial AI claims, inspect evidence, and compare workflows for reliable results.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 shadow-2xs">
+          <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/60 shadow-2xs">
             Prototype • Synthetic Demo Data
           </span>
           <button
             onClick={() => act('reset', api.reset)}
             disabled={busy !== null}
-            className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 flex items-center gap-1.5 disabled:opacity-50"
+            className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 flex items-center gap-1.5 disabled:opacity-50"
           >
             {busy === 'reset' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
             Reset demo

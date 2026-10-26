@@ -1,83 +1,85 @@
 import React from 'react';
-import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { 
-  ResponsiveContainer, 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  CartesianGrid, 
-  PieChart, 
-  Pie, 
-  Cell 
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
 } from 'recharts';
+import StatusMessage from '../components/StatusMessage';
+import { api, useApi, formatMetric, verdictLabel, VERDICT_COLORS } from '../api';
 
-const metricCards = [
-  {
-    title: 'Failure Recall',
-    value: '92.3%',
-    change: '+14.2%',
-    isPositive: true,
-    detail: 'vs baseline',
-  },
-  {
-    title: 'False Alarm Rate',
-    value: '6.7%',
-    change: '-8.9%',
-    isPositive: true,
-    detail: 'vs baseline',
-  },
-  {
-    title: 'Verdict Accuracy',
-    value: '91.7%',
-    change: '+12.3%',
-    isPositive: true,
-    detail: 'vs baseline',
-  },
-  {
-    title: 'Appropriate Abstention',
-    value: '4.5%',
-    change: '-3.1%',
-    isPositive: false,
-    detail: 'vs baseline',
-  },
+// Metric cards: key, title, and whether a higher value is better.
+const CARDS = [
+  { key: 'verdict_accuracy', title: 'Verdict Accuracy', higherIsBetter: true },
+  { key: 'failure_recall', title: 'Failure Recall', higherIsBetter: true },
+  { key: 'false_alarm_rate', title: 'False Alarm Rate', higherIsBetter: false },
+  { key: 'unsafe_refutations', title: 'Unsafe Refutations', higherIsBetter: false },
 ];
 
-const trendData = [
-  { date: 'Oct 12', Baseline: 50, Protected: 38 },
-  { date: 'Oct 13', Baseline: 58, Protected: 40 },
-  { date: 'Oct 14', Baseline: 65, Protected: 55 },
-  { date: 'Oct 15', Baseline: 75, Protected: 65 },
-  { date: 'Oct 16', Baseline: 68, Protected: 75 },
-  { date: 'Oct 17', Baseline: 62, Protected: 85 },
-  { date: 'Oct 18', Baseline: 75, Protected: 72 },
-  { date: 'Oct 19', Baseline: 76, Protected: 90 },
-  { date: 'Oct 20', Baseline: 82, Protected: 91 },
+const CHART_METRICS = [
+  { key: 'verdict_accuracy', label: 'Accuracy' },
+  { key: 'failure_recall', label: 'Traps caught' },
+  { key: 'appropriate_abstention', label: 'Correct abstain' },
+  { key: 'unsupported_confirmations', label: 'Unearned SUPPORTED' },
+  { key: 'unsafe_refutations', label: 'Unsafe REFUTED' },
 ];
 
-const distributionData = [
-  { name: 'Correct', value: 8, percentage: '66.7%', color: '#10B981' },
-  { name: 'Incorrect', value: 2, percentage: '16.7%', color: '#EF4444' },
-  { name: 'Abstained', value: 1, percentage: '8.3%', color: '#F59E0B' },
-  { name: 'Other', value: 1, percentage: '8.3%', color: '#A855F7' },
-];
+const pct = (m) => (m?.value == null ? 0 : Math.round(m.value * 100));
 
-const scenarios = [
-  { name: 'Temporal Mismatch', count: '4 cases', success: '75% success' },
-  { name: 'Spatial Mismatch', count: '2 cases', success: '100% success' },
-  { name: 'Source Conflict', count: '3 cases', success: '67% success' },
-  { name: 'Insufficient Evidence', count: '3 cases', success: '67% success' },
-];
+const CHECK_LABELS = {
+  temporal_relevance: 'Time check',
+  spatial_relevance: 'Place check',
+  metadata_completeness: 'Metadata check',
+  contradiction_detection: 'Contradiction check',
+  prompt_injection_safety: 'Injection check',
+};
 
 export default function BenchmarkPage() {
+  const dash = useApi(() => api.dashboard());
+  const ablation = useApi(() => api.ablation());
+
+  if (dash.loading || dash.error) {
+    return (
+      <div className="max-w-[1500px] mx-auto">
+        <StatusMessage loading={dash.loading} error={dash.error} onRetry={dash.reload} />
+      </div>
+    );
+  }
+
+  const { metrics, cases, failure_modes: modes } = dash.data;
+  const prot = metrics.protected;
+  const base = metrics.baseline;
+
+  const chartData = CHART_METRICS.map((m) => ({
+    name: m.label,
+    Baseline: pct(base[m.key]),
+    Protected: pct(prot[m.key]),
+  }));
+
+  const verdictCounts = cases.reduce((acc, c) => {
+    acc[c.protected.verdict] = (acc[c.protected.verdict] ?? 0) + 1;
+    return acc;
+  }, {});
+  const distributionData = Object.entries(verdictCounts).map(([verdict, value]) => ({
+    name: verdictLabel(verdict),
+    value,
+    color: VERDICT_COLORS[verdict],
+  }));
+
   return (
     <div className="space-y-6 max-w-[1500px] mx-auto">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Benchmark Metrics</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Performance metrics for the reliability testing framework.
+            Baseline vs protected workflow on {cases.length} labelled cases, identical inputs. Labels were frozen before running.
           </p>
         </div>
         <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/60 shadow-2xs">
@@ -86,85 +88,75 @@ export default function BenchmarkPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metricCards.map((card) => (
-          <div
-            key={card.title}
-            className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-2"
-          >
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{card.title}</span>
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">{card.value}</div>
-            <div className="flex items-center gap-1 text-xs font-medium">
-              {card.isPositive ? (
-                <span className="text-emerald-600 dark:text-emerald-400 flex items-center font-bold">
-                  <ArrowUpRight className="w-3.5 h-3.5" /> {card.change}
+        {CARDS.map((card) => {
+          const p = prot[card.key];
+          const b = base[card.key];
+          const better = card.higherIsBetter ? p.value >= b.value : p.value <= b.value;
+          return (
+            <div
+              key={card.key}
+              className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-2"
+            >
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{card.title}</span>
+              <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                {p.numerator}/{p.denominator}
+                <span className="text-sm font-semibold text-slate-400 dark:text-slate-500 ml-2">{pct(p)}%</span>
+              </div>
+              <div className="text-xs font-medium">
+                <span className={better ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-rose-600 dark:text-rose-400 font-bold'}>
+                  Protected
                 </span>
-              ) : (
-                <span className="text-emerald-600 dark:text-emerald-400 flex items-center font-bold">
-                  <ArrowDownRight className="w-3.5 h-3.5" /> {card.change}
-                </span>
-              )}
-              <span className="text-slate-400 dark:text-slate-500 pl-1">{card.detail}</span>
+                <span className="text-slate-400 dark:text-slate-500 pl-1">• baseline {formatMetric(b)}</span>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-bold text-slate-900 dark:text-slate-100 text-base">Performance Trend</h2>
-            <div className="flex items-center gap-4 text-xs font-medium">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-600 inline-block" />
-                <span className="text-slate-600 dark:text-slate-300">Baseline</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
-                <span className="text-slate-600 dark:text-slate-300">Protected</span>
-              </div>
-            </div>
+          <div>
+            <h2 className="font-bold text-slate-900 dark:text-slate-100 text-base">Baseline vs Protected</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Percent of the relevant cases. Higher is better for the first three, lower is better for the last two.
+            </p>
           </div>
-
-          <div className="h-64 w-full">
+          <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
-                <XAxis dataKey="date" tickLine={false} tick={{ fontSize: 11, fill: '#94A3B8' }} />
+              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#94A3B8" strokeOpacity={0.3} />
+                <XAxis dataKey="name" tickLine={false} tick={{ fontSize: 11, fill: '#94A3B8' }} interval={0} />
                 <YAxis domain={[0, 100]} tickLine={false} tick={{ fontSize: 11, fill: '#94A3B8' }} unit="%" />
                 <Tooltip
+                  formatter={(v) => `${v}%`}
                   contentStyle={{ backgroundColor: '#0F172A', borderRadius: '12px', border: '1px solid #334155', color: '#F8FAFC', fontSize: '12px' }}
                 />
-                <Line type="monotone" dataKey="Baseline" stroke="#2563EB" strokeWidth={2.5} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="Protected" stroke="#10B981" strokeWidth={2.5} dot={{ r: 3 }} />
-              </LineChart>
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar dataKey="Baseline" fill="#94A3B8" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                <Bar dataKey="Protected" fill="#2563EB" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xs space-y-4 flex flex-col justify-between">
-          <h2 className="font-bold text-slate-900 dark:text-slate-100 text-base">Verdict Distribution</h2>
+          <div>
+            <h2 className="font-bold text-slate-900 dark:text-slate-100 text-base">Protected Verdicts</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">How the protected workflow answered each case</p>
+          </div>
 
           <div className="relative h-48 w-full flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie
-                  data={distributionData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={55}
-                  outerRadius={80}
-                  paddingAngle={3}
-                  dataKey="value"
-                >
-                  {distributionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                <Pie data={distributionData} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={3} dataKey="value" isAnimationActive={false}>
+                  {distributionData.map((entry) => (
+                    <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
               </PieChart>
             </ResponsiveContainer>
-
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">12</span>
+              <span className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{cases.length}</span>
               <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">Total Cases</span>
             </div>
           </div>
@@ -177,7 +169,10 @@ export default function BenchmarkPage() {
                   <span className="text-slate-600 dark:text-slate-300 font-medium">{item.name}</span>
                 </div>
                 <span className="font-bold text-slate-900 dark:text-slate-100">
-                  {item.value} <span className="text-slate-400 dark:text-slate-500 font-normal">({item.percentage})</span>
+                  {item.value}{' '}
+                  <span className="text-slate-400 dark:text-slate-500 font-normal">
+                    ({Math.round((item.value / cases.length) * 100)}%)
+                  </span>
                 </span>
               </div>
             ))}
@@ -185,21 +180,61 @@ export default function BenchmarkPage() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xs space-y-4">
-        <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">Scenario Breakdown</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xs space-y-4">
+          <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">Scenario Breakdown</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {modes.map((sc) => {
+              const n = sc.case_ids.length;
+              return (
+                <div key={sc.tag} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-1.5">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{sc.label}</span>
+                  <div className="text-[11px] font-mono text-slate-400 dark:text-slate-500">{sc.case_ids.join(', ')}</div>
+                  <div className="text-xs font-semibold">
+                    <span className="text-emerald-600 dark:text-emerald-400">Protected {sc.caught_by_protected}/{n}</span>
+                    <span className="text-slate-400 dark:text-slate-500"> • baseline {sc.caught_by_baseline}/{n}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {scenarios.map((sc) => (
-            <div key={sc.name} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-2">
-              <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{sc.name}</span>
-              <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{sc.count}</div>
-              <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                <ArrowUpRight className="w-3.5 h-3.5" /> {sc.success}
-              </span>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xs space-y-4">
+          <div>
+            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">Ablation</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Cases that go wrong when one check is switched off</p>
+          </div>
+          {ablation.loading || ablation.error ? (
+            <StatusMessage loading={ablation.loading} error={ablation.error} onRetry={ablation.reload} />
+          ) : (
+            <div className="space-y-3">
+              {ablation.data.checks.map((row) => {
+                const broken = row.verdict_changes.filter((c) => c.with_check === c.expected).map((c) => c.case_id);
+                const width = Math.round((row.cases_broken / cases.length) * 100);
+                return (
+                  <div key={row.check_name}>
+                    <div className="flex justify-between text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      <span>{CHECK_LABELS[row.check_name] ?? row.check_name}</span>
+                      <span className="font-bold text-slate-900 dark:text-slate-100">
+                        {row.cases_broken} broken
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                      <div className="h-2 rounded-full bg-rose-500" style={{ width: `${width}%` }} />
+                    </div>
+                    <div className="text-[10px] font-mono text-slate-400 dark:text-slate-500 mt-1">
+                      {broken.length ? broken.join(', ') : 'covered by other checks'}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ))}
+          )}
         </div>
       </div>
+
+      <p className="text-xs text-slate-400 dark:text-slate-500">{dash.data.notice}</p>
     </div>
   );
 }

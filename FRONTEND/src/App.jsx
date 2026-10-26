@@ -11,7 +11,7 @@ import AuditTrailPage from './pages/AuditTrailPage';
 import SettingsPage from './pages/SettingsPage';
 
 export default function App() {
-  const [activePage, setActivePage] = useState('settings');
+  const [activePage, setActivePage] = useState('dashboard');
 
   return (
     <ThemeProvider>

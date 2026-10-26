@@ -63,6 +63,7 @@ Vite proxies `/api` to the backend, so open http://localhost:5173. The server is
 | `GET /api/health` | — |
 | `GET /api/dashboard` | `dashboard_summary()` |
 | `GET /api/cases` | `list_cases()` |
+| `GET /api/evidence` | `list_evidence()` |
 | `GET /api/cases/{id}` | `get_case(id)` |
 | `POST /api/cases/{id}/run` body `{"mode": "baseline"\|"protected"}` | `run_case(id, mode)` |
 | `POST /api/benchmark` | `run_benchmark()` |
@@ -88,7 +89,8 @@ The frontend calls only `backend/api.py`. Every function returns JSON-serialisab
 | `nearest_acquisitions(bbox, date)` | nearest real Sentinel-2 passes before/after `date`; `source` is `live`, `cached` or `unavailable` |
 | `export_run(run_id)` | full audit record (result, claim, evidence snapshot, version) as a JSON string |
 | `list_runs(case_id=None, limit=100)` | audit history, newest first |
-| `dashboard_summary()` | dashboard stats, failure modes, recent runs and findings, AOI |
+| `dashboard_summary()` | dashboard stats, per-case results, metrics, failure modes, recent runs and findings, AOI |
+| `list_evidence()` | every evidence item with the cases that use it |
 | `reset_demo()` | delete all stored runs and benchmarks |
 
 ## Project structure

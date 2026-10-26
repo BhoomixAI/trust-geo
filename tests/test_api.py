@@ -57,3 +57,20 @@ def test_reset_demo():
     api.run_case("C01", "protected")
     api.reset_demo()
     assert api.list_runs() == []
+
+
+def test_list_evidence_has_case_links():
+    evidence = api.list_evidence()
+    assert len(evidence) == 19
+    by_id = {e["evidence_id"]: e for e in evidence}
+    assert by_id["ev-c01-sat"]["case_ids"] == ["C01"]
+    assert by_id["ev-sat-01"]["case_ids"] == []  # legacy fixture, not in a case
+    json.dumps(evidence)
+
+
+def test_dashboard_includes_per_case_results():
+    cases = api.dashboard_summary()["cases"]
+    assert len(cases) == 12
+    c02 = next(c for c in cases if c["case_id"] == "C02")
+    assert c02["baseline"]["verdict"] == "REFUTED"
+    assert c02["protected"]["verdict"] == "INSUFFICIENT_EVIDENCE"

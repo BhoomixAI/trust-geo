@@ -6,6 +6,7 @@ Routes (all JSON):
   GET  /api/health
   GET  /api/dashboard
   GET  /api/cases
+  GET  /api/evidence
   GET  /api/cases/{case_id}
   POST /api/cases/{case_id}/run          body: {"mode": "baseline" | "protected"}
   POST /api/benchmark
@@ -27,7 +28,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from urllib.parse import parse_qs, urlparse
 
-from backend import api, storage
+from backend import __version__, api, storage
 from backend.evidence_loader import AcquisitionLookupError, CaseLoadError, EvidenceLoadError
 
 MAX_BODY_BYTES = 64 * 1024
@@ -87,9 +88,10 @@ def _run_case(case_id: str, body: Dict[str, Any]) -> Any:
 Handler = Callable[[Tuple[str, ...], Dict[str, List[str]], Dict[str, Any]], Any]
 
 ROUTES: List[Tuple[str, re.Pattern, Handler]] = [
-    ("GET", re.compile(r"^/api/health$"), lambda m, q, b: {"status": "ok", "synthetic_demo": True}),
+    ("GET", re.compile(r"^/api/health$"), lambda m, q, b: {"status": "ok", "synthetic_demo": True, "version": __version__}),
     ("GET", re.compile(r"^/api/dashboard$"), lambda m, q, b: api.dashboard_summary(_int_query(q, "limit", 10))),
     ("GET", re.compile(r"^/api/cases$"), lambda m, q, b: api.list_cases()),
+    ("GET", re.compile(r"^/api/evidence$"), lambda m, q, b: api.list_evidence()),
     ("GET", re.compile(r"^/api/cases/([\w-]+)$"), lambda m, q, b: api.get_case(m[0])),
     ("POST", re.compile(r"^/api/cases/([\w-]+)/run$"), lambda m, q, b: _run_case(m[0], b)),
     ("POST", re.compile(r"^/api/benchmark$"), lambda m, q, b: api.run_benchmark()),

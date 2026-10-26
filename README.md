@@ -12,6 +12,8 @@ goes through two workflows:
 
 A benchmark of 12 labelled **synthetic** cases compares both. No LLM calls, no API keys.
 
+**Live demo:** https://trust-geo.onrender.com (free plan: the first visit after 15 idle minutes takes up to a minute to wake).
+
 ## Verdicts
 
 | Verdict | Means |
@@ -86,7 +88,11 @@ the Python server, which serves both the app and `/api` on the port Render provi
 3. Wait for the build (a few minutes), then open the `https://trust-geo-….onrender.com` URL.
    `/api/health` should return `{"status": "ok", ...}`.
 
-Every push to `master` redeploys automatically. On the free plan the service sleeps after
+The live service (https://trust-geo.onrender.com) deploys from the fork `BhoomixAI/trust-geo`.
+Push to both repos so the team repo and the live site stay in step:
+`git push origin master && git push deploy master` (one-time setup:
+`git remote add deploy https://github.com/BhoomixAI/trust-geo.git`). Each push to the fork's
+`master` redeploys automatically. On the free plan the service sleeps after
 15 minutes without traffic (the first request then takes up to about a minute), and the audit
 history resets on each redeploy or restart because the filesystem is temporary.
 

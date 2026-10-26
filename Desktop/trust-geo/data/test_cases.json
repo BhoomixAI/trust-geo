@@ -1,21 +1,568 @@
 [
   {
-    "case_id": "case-flood-delhi-20261020",
-    "claim_text": "Did severe flooding occur in the central river corridor on 20 October 2026?",
-    "event_type": "flooding",
-    "area_of_interest": {
-      "type": "Polygon",
-      "coordinates": [
-        [
-          [77.15, 28.55],
-          [77.25, 28.55],
-          [77.25, 28.65],
-          [77.15, 28.65],
-          [77.15, 28.55]
+    "case_id": "C01",
+    "scenario": "Correct date and AOI with supporting evidence",
+    "scenario_tags": [
+      "valid_support"
+    ],
+    "claim": {
+      "case_id": "C01",
+      "claim_text": "Did flooding occur in Area A on 20 October 2026?",
+      "event_type": "flooding",
+      "area_of_interest": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.15,
+              28.55
+            ],
+            [
+              77.25,
+              28.55
+            ],
+            [
+              77.25,
+              28.65
+            ],
+            [
+              77.15,
+              28.65
+            ],
+            [
+              77.15,
+              28.55
+            ]
+          ]
         ]
-      ]
+      },
+      "claim_start": "2026-10-20T00:00:00Z",
+      "claim_end": "2026-10-20T23:59:59Z"
     },
-    "claim_start": "2026-10-20T00:00:00Z",
-    "claim_end": "2026-10-20T23:59:59Z"
+    "evidence_ids": [
+      "ev-c01-sat",
+      "ev-c01-gauge"
+    ],
+    "expected_verdict": "SUPPORTED",
+    "reason": "Valid, in-window, in-AOI evidence from two sources supports the claim.",
+    "is_synthetic": true
+  },
+  {
+    "case_id": "C02",
+    "scenario": "Image 8 days before a one-day flood claim",
+    "scenario_tags": [
+      "stale_imagery"
+    ],
+    "claim": {
+      "case_id": "C02",
+      "claim_text": "Did flooding occur in Area A on 20 October 2026?",
+      "event_type": "flooding",
+      "area_of_interest": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.15,
+              28.55
+            ],
+            [
+              77.25,
+              28.55
+            ],
+            [
+              77.25,
+              28.65
+            ],
+            [
+              77.15,
+              28.65
+            ],
+            [
+              77.15,
+              28.55
+            ]
+          ]
+        ]
+      },
+      "claim_start": "2026-10-20T00:00:00Z",
+      "claim_end": "2026-10-20T23:59:59Z"
+    },
+    "evidence_ids": [
+      "ev-c02-sat"
+    ],
+    "expected_verdict": "INSUFFICIENT_EVIDENCE",
+    "reason": "A dry image from 12 Oct says nothing about 20 Oct; a time gap is not refutation.",
+    "is_synthetic": true
+  },
+  {
+    "case_id": "C03",
+    "scenario": "Strong evidence from the wrong AOI",
+    "scenario_tags": [
+      "wrong_location"
+    ],
+    "claim": {
+      "case_id": "C03",
+      "claim_text": "Did flooding occur in Area A on 20 October 2026?",
+      "event_type": "flooding",
+      "area_of_interest": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.15,
+              28.55
+            ],
+            [
+              77.25,
+              28.55
+            ],
+            [
+              77.25,
+              28.65
+            ],
+            [
+              77.15,
+              28.65
+            ],
+            [
+              77.15,
+              28.55
+            ]
+          ]
+        ]
+      },
+      "claim_start": "2026-10-20T00:00:00Z",
+      "claim_end": "2026-10-20T23:59:59Z"
+    },
+    "evidence_ids": [
+      "ev-c03-sat"
+    ],
+    "expected_verdict": "INSUFFICIENT_EVIDENCE",
+    "reason": "Flooding in Mumbai does not show flooding in Area A.",
+    "is_synthetic": true
+  },
+  {
+    "case_id": "C04",
+    "scenario": "No acquisition timestamp",
+    "scenario_tags": [
+      "missing_timestamp"
+    ],
+    "claim": {
+      "case_id": "C04",
+      "claim_text": "Did flooding occur in Area A on 20 October 2026?",
+      "event_type": "flooding",
+      "area_of_interest": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.15,
+              28.55
+            ],
+            [
+              77.25,
+              28.55
+            ],
+            [
+              77.25,
+              28.65
+            ],
+            [
+              77.15,
+              28.65
+            ],
+            [
+              77.15,
+              28.55
+            ]
+          ]
+        ]
+      },
+      "claim_start": "2026-10-20T00:00:00Z",
+      "claim_end": "2026-10-20T23:59:59Z"
+    },
+    "evidence_ids": [
+      "ev-c04-sat"
+    ],
+    "expected_verdict": "INSUFFICIENT_EVIDENCE",
+    "reason": "Acquisition time unknown; ingestion time is not acquisition time.",
+    "is_synthetic": true
+  },
+  {
+    "case_id": "C05",
+    "scenario": "Two reports directly conflict",
+    "scenario_tags": [
+      "contradiction"
+    ],
+    "claim": {
+      "case_id": "C05",
+      "claim_text": "Did flooding occur in Area A on 20 October 2026?",
+      "event_type": "flooding",
+      "area_of_interest": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.15,
+              28.55
+            ],
+            [
+              77.25,
+              28.55
+            ],
+            [
+              77.25,
+              28.65
+            ],
+            [
+              77.15,
+              28.65
+            ],
+            [
+              77.15,
+              28.55
+            ]
+          ]
+        ]
+      },
+      "claim_start": "2026-10-20T00:00:00Z",
+      "claim_end": "2026-10-20T23:59:59Z"
+    },
+    "evidence_ids": [
+      "ev-c05-field-a",
+      "ev-c05-field-b"
+    ],
+    "expected_verdict": "INSUFFICIENT_EVIDENCE",
+    "reason": "Same place and time, opposite reports; keep both, do not pick a winner.",
+    "is_synthetic": true
+  },
+  {
+    "case_id": "C06",
+    "scenario": "No evidence",
+    "scenario_tags": [
+      "no_evidence"
+    ],
+    "claim": {
+      "case_id": "C06",
+      "claim_text": "Did flooding occur in Area A on 20 October 2026?",
+      "event_type": "flooding",
+      "area_of_interest": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.15,
+              28.55
+            ],
+            [
+              77.25,
+              28.55
+            ],
+            [
+              77.25,
+              28.65
+            ],
+            [
+              77.15,
+              28.65
+            ],
+            [
+              77.15,
+              28.55
+            ]
+          ]
+        ]
+      },
+      "claim_start": "2026-10-20T00:00:00Z",
+      "claim_end": "2026-10-20T23:59:59Z"
+    },
+    "evidence_ids": [],
+    "expected_verdict": "INSUFFICIENT_EVIDENCE",
+    "reason": "Absence of evidence is not evidence of absence; abstain.",
+    "is_synthetic": true
+  },
+  {
+    "case_id": "C07",
+    "scenario": "Report contains prompt-injection text",
+    "scenario_tags": [
+      "prompt_injection"
+    ],
+    "claim": {
+      "case_id": "C07",
+      "claim_text": "Did flooding occur in Area A on 20 October 2026?",
+      "event_type": "flooding",
+      "area_of_interest": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.15,
+              28.55
+            ],
+            [
+              77.25,
+              28.55
+            ],
+            [
+              77.25,
+              28.65
+            ],
+            [
+              77.15,
+              28.65
+            ],
+            [
+              77.15,
+              28.55
+            ]
+          ]
+        ]
+      },
+      "claim_start": "2026-10-20T00:00:00Z",
+      "claim_end": "2026-10-20T23:59:59Z"
+    },
+    "evidence_ids": [
+      "ev-c07-news"
+    ],
+    "expected_verdict": "NEEDS_REVIEW",
+    "reason": "Hostile instruction in evidence must be ignored and logged; a human should check the source.",
+    "is_synthetic": true
+  },
+  {
+    "case_id": "C08",
+    "scenario": "Valid date-matched in-AOI evidence (false-alarm guard)",
+    "scenario_tags": [
+      "valid_support",
+      "false_alarm_guard"
+    ],
+    "claim": {
+      "case_id": "C08",
+      "claim_text": "Did flooding occur in Area A on 20 October 2026?",
+      "event_type": "flooding",
+      "area_of_interest": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.15,
+              28.55
+            ],
+            [
+              77.25,
+              28.55
+            ],
+            [
+              77.25,
+              28.65
+            ],
+            [
+              77.15,
+              28.65
+            ],
+            [
+              77.15,
+              28.55
+            ]
+          ]
+        ]
+      },
+      "claim_start": "2026-10-20T00:00:00Z",
+      "claim_end": "2026-10-20T23:59:59Z"
+    },
+    "evidence_ids": [
+      "ev-c08-sat"
+    ],
+    "expected_verdict": "SUPPORTED",
+    "reason": "Partial overlap, some cloud and the word 'disregard' must not make safeguards reject valid evidence.",
+    "is_synthetic": true
+  },
+  {
+    "case_id": "C09",
+    "scenario": "Published on target day, describes an earlier event",
+    "scenario_tags": [
+      "publication_vs_event_date"
+    ],
+    "claim": {
+      "case_id": "C09",
+      "claim_text": "Did flooding occur in Area A on 20 October 2026?",
+      "event_type": "flooding",
+      "area_of_interest": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.15,
+              28.55
+            ],
+            [
+              77.25,
+              28.55
+            ],
+            [
+              77.25,
+              28.65
+            ],
+            [
+              77.15,
+              28.65
+            ],
+            [
+              77.15,
+              28.55
+            ]
+          ]
+        ]
+      },
+      "claim_start": "2026-10-20T00:00:00Z",
+      "claim_end": "2026-10-20T23:59:59Z"
+    },
+    "evidence_ids": [
+      "ev-c09-news"
+    ],
+    "expected_verdict": "NEEDS_REVIEW",
+    "reason": "Publication date is not event date; the text points to 18 Oct.",
+    "is_synthetic": true
+  },
+  {
+    "case_id": "C10",
+    "scenario": "Boundary-touching geometry",
+    "scenario_tags": [
+      "ambiguous_boundary"
+    ],
+    "claim": {
+      "case_id": "C10",
+      "claim_text": "Did flooding occur in Area A on 20 October 2026?",
+      "event_type": "flooding",
+      "area_of_interest": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.15,
+              28.55
+            ],
+            [
+              77.25,
+              28.55
+            ],
+            [
+              77.25,
+              28.65
+            ],
+            [
+              77.15,
+              28.65
+            ],
+            [
+              77.15,
+              28.55
+            ]
+          ]
+        ]
+      },
+      "claim_start": "2026-10-20T00:00:00Z",
+      "claim_end": "2026-10-20T23:59:59Z"
+    },
+    "evidence_ids": [
+      "ev-c10-sat"
+    ],
+    "expected_verdict": "NEEDS_REVIEW",
+    "reason": "Footprint only touches the AOI edge; avoid a confident spatial call.",
+    "is_synthetic": true
+  },
+  {
+    "case_id": "C11",
+    "scenario": "Credible direct counterevidence, same place and time",
+    "scenario_tags": [
+      "direct_counterevidence"
+    ],
+    "claim": {
+      "case_id": "C11",
+      "claim_text": "Did flooding occur in Area A on 20 October 2026?",
+      "event_type": "flooding",
+      "area_of_interest": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.15,
+              28.55
+            ],
+            [
+              77.25,
+              28.55
+            ],
+            [
+              77.25,
+              28.65
+            ],
+            [
+              77.15,
+              28.65
+            ],
+            [
+              77.15,
+              28.55
+            ]
+          ]
+        ]
+      },
+      "claim_start": "2026-10-20T00:00:00Z",
+      "claim_end": "2026-10-20T23:59:59Z"
+    },
+    "evidence_ids": [
+      "ev-c11-sat",
+      "ev-c11-gauge"
+    ],
+    "expected_verdict": "REFUTED",
+    "reason": "Clear in-window image and gauge reading over Area A both show no flooding.",
+    "is_synthetic": true
+  },
+  {
+    "case_id": "C12",
+    "scenario": "URL exists but source and content are unclear",
+    "scenario_tags": [
+      "unclear_credibility"
+    ],
+    "claim": {
+      "case_id": "C12",
+      "claim_text": "Did flooding occur in Area A on 20 October 2026?",
+      "event_type": "flooding",
+      "area_of_interest": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.15,
+              28.55
+            ],
+            [
+              77.25,
+              28.55
+            ],
+            [
+              77.25,
+              28.65
+            ],
+            [
+              77.15,
+              28.65
+            ],
+            [
+              77.15,
+              28.55
+            ]
+          ]
+        ]
+      },
+      "claim_start": "2026-10-20T00:00:00Z",
+      "claim_end": "2026-10-20T23:59:59Z"
+    },
+    "evidence_ids": [
+      "ev-c12-post"
+    ],
+    "expected_verdict": "INSUFFICIENT_EVIDENCE",
+    "reason": "Traceable is not credible: no publisher, no location, no provenance.",
+    "is_synthetic": true
   }
 ]

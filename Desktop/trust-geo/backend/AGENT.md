@@ -1,3 +1,5 @@
+> **Outdated where it conflicts with CLAUDE.md.**
+
 # AGENT.md — TRUST-GEO
 
 ## 1. Project Overview

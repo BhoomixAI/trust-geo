@@ -10,8 +10,10 @@ from backend.schemas import (
     Finding,
     FindingSeverity,
     FindingStatus,
+    BenchmarkCase,
+    RunResult,
+    Verdict,
     VerdictEnum,
-    VerificationResult,
 )
 
 
@@ -89,12 +91,12 @@ def test_valid_finding():
     assert finding.severity == FindingSeverity.INFO
 
 
-def test_verification_result_allowed_verdicts():
+def test_run_result_allowed_verdicts():
     for verdict in VerdictEnum:
-        res = VerificationResult(
+        res = RunResult(
             run_id="run-001",
             case_id="case-001",
-            workflow_mode="protected",
+            mode="protected",
             verdict=verdict,
             timestamp=datetime.now(timezone.utc),
             synthetic_demo=True,
@@ -102,12 +104,94 @@ def test_verification_result_allowed_verdicts():
         assert res.verdict == verdict
 
 
-def test_verification_result_invalid_verdict():
+def test_run_result_invalid_verdict():
     with pytest.raises(ValidationError):
-        VerificationResult(
+        RunResult(
             run_id="run-002",
             case_id="case-001",
-            workflow_mode="protected",
+            mode="protected",
             verdict="DEFINITELY_TRUE",  # Not allowed
             timestamp=datetime.now(timezone.utc),
+        )
+
+
+def test_verdict_alias_is_same_enum():
+    assert VerdictEnum is Verdict
+    assert {v.value for v in Verdict} == {
+        "SUPPORTED", "REFUTED", "INSUFFICIENT_EVIDENCE", "NEEDS_REVIEW"
+    }
+
+
+def test_run_result_rejects_unknown_mode():
+    with pytest.raises(ValidationError):
+        RunResult(run_id="r", case_id="c", mode="turbo", verdict=Verdict.SUPPORTED)
+
+
+def test_run_result_new_fields_and_json_roundtrip():
+    res = RunResult(
+        run_id="run-003",
+        case_id="C01",
+        mode="baseline",
+        verdict=Verdict.INSUFFICIENT_EVIDENCE,
+        next_evidence_needed=["Satellite pass within 72h of claim window"],
+        elapsed_ms=12.5,
+    )
+    data = res.model_dump(mode="json")
+    assert data["mode"] == "baseline"
+    assert data["verdict"] == "INSUFFICIENT_EVIDENCE"
+    assert data["next_evidence_needed"] == ["Satellite pass within 72h of claim window"]
+    assert data["elapsed_ms"] == 12.5
+    assert RunResult.model_validate(data) == res
+
+
+def test_run_result_rejects_negative_elapsed():
+    with pytest.raises(ValidationError):
+        RunResult(run_id="r", case_id="c", mode="protected",
+                  verdict=Verdict.SUPPORTED, elapsed_ms=-1)
+
+
+def test_finding_code_defaults_and_can_be_set():
+    f = Finding(check_name="temporal_relevance", status=FindingStatus.PASS,
+                severity=FindingSeverity.INFO, explanation="ok")
+    assert f.code == "UNSPECIFIED"
+    f2 = Finding(check_name="temporal_relevance", code="TEMPORAL_MATCH",
+                 status=FindingStatus.PASS, severity=FindingSeverity.INFO, explanation="ok")
+    assert f2.code == "TEMPORAL_MATCH"
+
+
+def _claim(case_id="C01"):
+    return {
+        "case_id": case_id,
+        "claim_text": "Did flooding occur in Area A on 20 October?",
+        "event_type": "flooding",
+        "area_of_interest": {"type": "Point", "coordinates": [77.2, 28.6]},
+        "claim_start": "2026-10-20T00:00:00Z",
+        "claim_end": "2026-10-20T23:59:59Z",
+    }
+
+
+def test_benchmark_case_valid():
+    case = BenchmarkCase(
+        case_id="C01", scenario="Correct date/AOI with support",
+        scenario_tags=["valid_support"], claim=_claim("C01"),
+        evidence_ids=["E1"], expected_verdict="SUPPORTED",
+        reason="Valid evidence should pass.",
+    )
+    assert case.expected_verdict == Verdict.SUPPORTED
+    assert case.is_synthetic is True
+
+
+def test_benchmark_case_rejects_mismatched_case_id():
+    with pytest.raises(ValidationError, match="does not match"):
+        BenchmarkCase(
+            case_id="C01", scenario="x", claim=_claim("C02"),
+            expected_verdict="SUPPORTED", reason="x",
+        )
+
+
+def test_benchmark_case_rejects_unknown_verdict():
+    with pytest.raises(ValidationError):
+        BenchmarkCase(
+            case_id="C01", scenario="x", claim=_claim("C01"),
+            expected_verdict="PROBABLY", reason="x",
         )

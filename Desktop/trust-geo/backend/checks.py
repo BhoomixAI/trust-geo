@@ -28,6 +28,14 @@ from backend.schemas import (
 # Default freshness buffer in hours (e.g. 72 hours around sudden events like floods)
 DEFAULT_FRESHNESS_HOURS: float = 72.0
 
+# Event-specific freshness buffers in hours. Events not listed use DEFAULT_FRESHNESS_HOURS.
+FRESHNESS_HOURS_BY_EVENT: Dict[str, float] = {
+    "flooding": 72.0,
+    "wildfire": 48.0,
+    "landslide": 120.0,
+    "drought": 720.0,
+}
+
 # Standard required metadata attributes per source type
 DEFAULT_REQUIRED_METADATA: Dict[str, List[str]] = {
     "satellite": ["platform", "cloud_cover_pct", "resolution_m"],
@@ -38,7 +46,8 @@ DEFAULT_REQUIRED_METADATA: Dict[str, List[str]] = {
 
 # Prompt injection heuristic patterns (supplementary filter - does not guarantee complete security)
 INJECTION_PATTERNS: List[Tuple[str, str]] = [
-    ("instruction_override", r"(?i)\b(ignore|disregard|forget)\s+(all\s+)?(previous|prior|above)\s+(instructions|rules|context)\b"),
+    ("instruction_override", r"(?i)\b(ignore|disregard|forget|override)\s+(all\s+|any\s+|the\s+|your\s+)?((previous|prior|above|earlier|these|system)\s+)?(instructions|rules|context|guidelines|policies|checks)\b"),
+    ("verdict_tampering_declare", r"(?i)\b(declare|mark|treat|label)\s+(this|the\s+claim|it)\s+(as\s+)?(verified|true|false|confirmed|supported|refuted)\b"),
     ("system_prompt_leak", r"(?i)\b(system\s+prompt|system\s+override|<system>|\[system\]|system:)\b"),
     ("persona_hijack", r"(?i)\b(you\s+are\s+now\s+a|act\s+as\s+an?\s+unrestricted|jailbreak|developer\s+mode|dan\s+mode)\b"),
     ("verdict_tampering", r"(?i)\b(output\s+(only\s+)?(supported|refuted)|set\s+verdict\s+to\s+(supported|refuted)|verdict\s*:\s*(supported|refuted))\b"),
@@ -137,6 +146,7 @@ def check_spatial_relevance(claim: Claim, evidence: Evidence) -> Finding:
     if claim_geom is None or claim_err is not None:
         return Finding(
             check_name="spatial_relevance",
+            code="INVALID_AOI",
             status=FindingStatus.FAIL,
             severity=FindingSeverity.HIGH,
             evidence_ids=[evidence_id],
@@ -151,6 +161,7 @@ def check_spatial_relevance(claim: Claim, evidence: Evidence) -> Finding:
     if ev_geom is None and ev_err is None:
         return Finding(
             check_name="spatial_relevance",
+            code="SPATIAL_UNKNOWN",
             status=FindingStatus.WARN,
             severity=FindingSeverity.MEDIUM,
             evidence_ids=[evidence_id],
@@ -166,6 +177,7 @@ def check_spatial_relevance(claim: Claim, evidence: Evidence) -> Finding:
     if ev_err is not None:
         return Finding(
             check_name="spatial_relevance",
+            code="INVALID_GEOMETRY",
             status=FindingStatus.FAIL,
             severity=FindingSeverity.HIGH,
             evidence_ids=[evidence_id],
@@ -179,6 +191,7 @@ def check_spatial_relevance(claim: Claim, evidence: Evidence) -> Finding:
     if claim_geom.intersects(ev_geom) and claim_geom.touches(ev_geom):
         return Finding(
             check_name="spatial_relevance",
+            code="BOUNDARY_ONLY",
             status=FindingStatus.REVIEW,
             severity=FindingSeverity.MEDIUM,
             evidence_ids=[evidence_id],
@@ -201,6 +214,7 @@ def check_spatial_relevance(claim: Claim, evidence: Evidence) -> Finding:
         overlap_area = getattr(intersection, "area", 0.0)
         return Finding(
             check_name="spatial_relevance",
+            code="SPATIAL_OVERLAP",
             status=FindingStatus.PASS,
             severity=FindingSeverity.INFO,
             evidence_ids=[evidence_id],
@@ -220,6 +234,7 @@ def check_spatial_relevance(claim: Claim, evidence: Evidence) -> Finding:
     # Case 5: Disjoint (spatial mismatch)
     return Finding(
         check_name="spatial_relevance",
+        code="WRONG_LOCATION",
         status=FindingStatus.FAIL,
         severity=FindingSeverity.HIGH,
         evidence_ids=[evidence_id],
@@ -308,6 +323,7 @@ def check_evidence_contradictions(
         return [
             Finding(
                 check_name="contradiction_detection",
+                code="NO_CONTRADICTION",
                 status=FindingStatus.PASS,
                 severity=FindingSeverity.INFO,
                 evidence_ids=[ev.evidence_id for ev in evidence_list],
@@ -331,8 +347,34 @@ def check_evidence_contradictions(
             if not pol_a or not pol_b or pol_a == pol_b:
                 continue
 
-            # Rule: Both must have acquisition timestamps within temporal proximity
+            # Rule: Undated opposing evidence cannot be confirmed as same-time conflict.
+            # Flag it as a possible contradiction for review instead of silently skipping it.
             if ev_a.acquired_at is None or ev_b.acquired_at is None:
+                geom_a, _ = parse_geometry(ev_a.geometry, ev_a.bbox)
+                geom_b, _ = parse_geometry(ev_b.geometry, ev_b.bbox)
+                if geom_a is not None and geom_b is not None and not geom_a.intersects(geom_b):
+                    continue
+                findings.append(
+                    Finding(
+                        check_name="contradiction_detection",
+                        code="POSSIBLE_CONTRADICTION",
+                        status=FindingStatus.REVIEW,
+                        severity=FindingSeverity.MEDIUM,
+                        evidence_ids=[ev_a.evidence_id, ev_b.evidence_id],
+                        explanation=(
+                            f"Evidence '{ev_a.evidence_id}' (reports '{pol_a}') and '{ev_b.evidence_id}' "
+                            f"(reports '{pol_b}') disagree, but at least one lacks an acquisition timestamp, "
+                            "so it cannot be confirmed they describe the same time. "
+                            "Publication date is not used as event date. Both sides preserved."
+                        ),
+                        details={
+                            "evidence_a": {"id": ev_a.evidence_id, "polarity": pol_a},
+                            "evidence_b": {"id": ev_b.evidence_id, "polarity": pol_b},
+                            "timing_unknown": True,
+                            "claim_event_type": claim.event_type,
+                        },
+                    )
+                )
                 continue
 
             time_diff_hours = abs((ev_a.acquired_at - ev_b.acquired_at).total_seconds()) / 3600.0
@@ -352,6 +394,7 @@ def check_evidence_contradictions(
             findings.append(
                 Finding(
                     check_name="contradiction_detection",
+                    code="CONTRADICTION",
                     status=FindingStatus.REVIEW,
                     severity=FindingSeverity.HIGH,
                     evidence_ids=[ev_a.evidence_id, ev_b.evidence_id],
@@ -375,6 +418,7 @@ def check_evidence_contradictions(
         return [
             Finding(
                 check_name="contradiction_detection",
+                code="NO_CONTRADICTION",
                 status=FindingStatus.PASS,
                 severity=FindingSeverity.INFO,
                 evidence_ids=[ev.evidence_id for ev in evidence_list],
@@ -423,6 +467,7 @@ def check_prompt_injection(evidence: Evidence) -> Finding:
     if detected_patterns:
         return Finding(
             check_name="prompt_injection_safety",
+            code="INJECTION_SUSPECTED",
             status=FindingStatus.WARN,
             severity=FindingSeverity.HIGH,
             evidence_ids=[evidence_id],
@@ -442,6 +487,7 @@ def check_prompt_injection(evidence: Evidence) -> Finding:
 
     return Finding(
         check_name="prompt_injection_safety",
+        code="NO_INJECTION_DETECTED",
         status=FindingStatus.PASS,
         severity=FindingSeverity.INFO,
         evidence_ids=[evidence_id],
@@ -475,7 +521,11 @@ def check_temporal_relevance(
     - If acquired_at falls strictly within [claim_start, claim_end], status is PASS.
     - If outside interval, calculates the gap in hours and compares to freshness_hours threshold.
     """
-    threshold = freshness_hours if freshness_hours is not None else DEFAULT_FRESHNESS_HOURS
+    threshold = (
+        freshness_hours
+        if freshness_hours is not None
+        else FRESHNESS_HOURS_BY_EVENT.get(claim.event_type.strip().lower(), DEFAULT_FRESHNESS_HOURS)
+    )
     evidence_id = evidence.evidence_id
 
     # Case 1: acquired_at is absent
@@ -483,6 +533,7 @@ def check_temporal_relevance(
         if evidence.published_at is not None:
             return Finding(
                 check_name="temporal_relevance",
+                code="PUBLICATION_DATE_ONLY",
                 status=FindingStatus.WARN,
                 severity=FindingSeverity.MEDIUM,
                 evidence_ids=[evidence_id],
@@ -499,6 +550,7 @@ def check_temporal_relevance(
             )
         return Finding(
             check_name="temporal_relevance",
+            code="TEMPORAL_UNKNOWN",
             status=FindingStatus.FAIL,
             severity=FindingSeverity.HIGH,
             evidence_ids=[evidence_id],
@@ -516,6 +568,7 @@ def check_temporal_relevance(
     if claim.claim_start <= acq <= claim.claim_end:
         return Finding(
             check_name="temporal_relevance",
+            code="TEMPORAL_MATCH",
             status=FindingStatus.PASS,
             severity=FindingSeverity.INFO,
             evidence_ids=[evidence_id],
@@ -543,6 +596,7 @@ def check_temporal_relevance(
     if gap_hours <= threshold:
         return Finding(
             check_name="temporal_relevance",
+            code="NEAR_INTERVAL",
             status=FindingStatus.WARN,
             severity=FindingSeverity.LOW,
             evidence_ids=[evidence_id],
@@ -562,6 +616,7 @@ def check_temporal_relevance(
     # Beyond freshness threshold
     return Finding(
         check_name="temporal_relevance",
+        code="STALE_EVIDENCE",
         status=FindingStatus.FAIL,
         severity=FindingSeverity.HIGH,
         evidence_ids=[evidence_id],
@@ -595,7 +650,21 @@ def check_metadata_completeness(
     evidence_id = evidence.evidence_id
     source_type = evidence.source_type
 
-    expected_keys = req_map.get(source_type, [])
+    if source_type not in req_map:
+        return Finding(
+            check_name="metadata_completeness",
+            code="UNKNOWN_SOURCE_TYPE",
+            status=FindingStatus.WARN,
+            severity=FindingSeverity.MEDIUM,
+            evidence_ids=[evidence_id],
+            explanation=(
+                f"Evidence '{evidence_id}' has source type '{source_type}', which has no metadata "
+                "requirements defined. Completeness is unknown, not proof that the claim is false."
+            ),
+            details={"source_type": source_type, "known_source_types": sorted(req_map)},
+        )
+
+    expected_keys = req_map[source_type]
     actual_metadata = evidence.metadata or {}
 
     missing_keys: List[str] = []
@@ -612,6 +681,7 @@ def check_metadata_completeness(
     if not missing_keys and not empty_keys and not missing_provenance:
         return Finding(
             check_name="metadata_completeness",
+            code="METADATA_OK",
             status=FindingStatus.PASS,
             severity=FindingSeverity.INFO,
             evidence_ids=[evidence_id],
@@ -639,6 +709,7 @@ def check_metadata_completeness(
 
     return Finding(
         check_name="metadata_completeness",
+        code="MISSING_METADATA",
         status=FindingStatus.WARN,
         severity=severity,
         evidence_ids=[evidence_id],
